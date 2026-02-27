@@ -14,7 +14,6 @@ const logout = () => {
 <template>
   <div class="layout">
 
-    <!-- Sidebar -->
     <aside class="sidebar">
       <h2 class="logo">Sponsor Panel</h2>
 
@@ -48,7 +47,6 @@ const logout = () => {
       </ul>
     </aside>
 
-    <!-- Page Content -->
     <main class="content">
       <router-view />
     </main>
