@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 
-// Current sponsor
 const sponsor = JSON.parse(localStorage.getItem("sponsor_session") || "null");
 
-// Data interfaces
 interface Scholarship {
   id: number;
   sponsorId: number;
@@ -25,14 +23,10 @@ interface Student {
   email: string;
 }
 
-// List of scholarships by this sponsor
 const scholarships = ref<Scholarship[]>([]);
-// All applications
 const applications = ref<Application[]>([]);
-// All students
 const students = ref<Student[]>([]);
 
-// Fetch data from localStorage
 const fetchData = () => {
   const allScholarships: Scholarship[] = JSON.parse(localStorage.getItem("scholarships") || "[]");
   scholarships.value = allScholarships.filter(s => s.sponsorId === sponsor.id);
@@ -45,7 +39,6 @@ const fetchData = () => {
 
 onMounted(fetchData);
 
-// Helper to get student info
 const getStudent = (id: number) => students.value.find(s => s.id === id);
 const getScholarship = (id: number) => scholarships.value.find(s => s.id === id);
 </script>
