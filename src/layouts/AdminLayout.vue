@@ -7,6 +7,7 @@ const route = useRoute();
 const isActive = (name: string) => route.name === name;
 
 const logout = () => {
+  localStorage.removeItem("admin_session");
   router.push("/login");
 };
 </script>
