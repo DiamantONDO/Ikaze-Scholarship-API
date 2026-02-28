@@ -37,20 +37,17 @@ const updateStatus = (status: "Approved" | "Rejected") => {
 <template>
   <div class="page" v-if="application">
 
-    <!-- Header -->
     <div class="page-header">
       <button class="back-btn" @click="router.back()">← Back</button>
       <h1>Application Detail</h1>
     </div>
 
-    <!-- Status Banner -->
     <div :class="['status-banner', application.status.toLowerCase()]">
       Status: <strong>{{ application.status }}</strong>
     </div>
 
     <div class="grid-layout">
 
-      <!-- Student Info -->
       <div class="detail-card">
         <h2>Student Information</h2>
         <div class="info-row"><label>Full Name</label><span>{{ application.details?.fullName }}</span></div>
@@ -63,7 +60,6 @@ const updateStatus = (status: "Approved" | "Rejected") => {
         <div class="info-row"><label>Year</label><span>{{ student?.year }}</span></div>
       </div>
 
-      <!-- Scholarship Info -->
       <div class="detail-card">
         <h2>Scholarship Information</h2>
         <div class="info-row"><label>Title</label><span>{{ scholarship?.title }}</span></div>
@@ -73,7 +69,6 @@ const updateStatus = (status: "Approved" | "Rejected") => {
         <div class="info-row"><label>Applied On</label><span>{{ new Date(application.date).toLocaleDateString("en-GB") }}</span></div>
       </div>
 
-      <!-- Documents -->
       <div class="detail-card full-width">
         <h2>📎 Submitted Documents</h2>
         <div class="docs-grid">
@@ -103,7 +98,6 @@ const updateStatus = (status: "Approved" | "Rejected") => {
 
     </div>
 
-    <!-- Actions -->
     <div class="actions" v-if="application.status === 'Pending'">
       <button class="approve-btn" @click="updateStatus('Approved')">Approve</button>
       <button class="reject-btn" @click="updateStatus('Rejected')">Reject</button>
