@@ -7,6 +7,7 @@ const route = useRoute();
 const isActive = (name: string) => route.name === name;
 
 const logout = () => {
+  localStorage.removeItem("sponsor_session");
   router.push("/login");
 };
 </script>
@@ -44,6 +45,7 @@ const logout = () => {
         </li>-->
 
         <li @click="logout">Sign Out</li>
+        <li id="sponsorName" @click="logout">Sign Out</li>
       </ul>
     </aside>
 
@@ -98,5 +100,13 @@ const logout = () => {
   flex: 1;
   padding: 30px;
   background: #f9fafb;
+}
+
+#sponsorName{
+  margin-top: 60px;
+  background-color: #f9fafb;
+  color:#1e3a8a;
+  border-radius: 50%;
+  text-align: center;
 }
 </style>
