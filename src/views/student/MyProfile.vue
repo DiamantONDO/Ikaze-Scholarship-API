@@ -3,6 +3,11 @@ import { ref, onMounted } from "vue";
 
 const student = ref({
   fullName: "",
+  age: "",
+  sex: "",
+  idCard: "",
+  equivalence: "",
+  transcript: "",
   email: "",
   phone: "",
   university: "",
@@ -15,7 +20,6 @@ const student = ref({
 });
 
 onMounted(() => {
-  //Read the logged-in user from localStorage
   const loggedIn = JSON.parse(localStorage.getItem("student_session") || "null");
   if (loggedIn) {
     student.value = { ...student.value, ...loggedIn };
@@ -27,11 +31,12 @@ onMounted(() => {
   <div>
     <h1 class="page-title">My Profile</h1>
 
-    <!-- Personal Info -->
     <div class="card">
       <h2>Personal Information</h2>
       <div class="grid">
         <div><label>Full Name</label><p>{{ student.fullName }}</p></div>
+        <div><label>Sex</label><p>{{ student.sex }}</p></div>
+        <div><label>Age</label><p>{{ student.age }}</p></div>
         <div><label>Email</label><p>{{ student.email }}</p></div>
         <div><label>Phone</label><p>{{ student.phone }}</p></div>
         <div><label>University</label><p>{{ student.university }}</p></div>
@@ -40,7 +45,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Parents Info -->
     <div class="card">
       <h2>Parents Information</h2>
       <div class="grid">
@@ -79,6 +83,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px;
+  font-size: x-large;
 }
 
 label {
@@ -86,6 +91,7 @@ label {
   color: gray;
   display: block;
   margin-bottom: 4px;
+  font-size: large;
 }
 
 p {
