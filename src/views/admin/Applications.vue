@@ -5,31 +5,26 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 
-// Load data from localStorage
 const applications = ref<any[]>([]);
 const scholarships = ref<any[]>([]);
 const students = ref<any[]>([]);
 
-// Fetch all data on mounted
 onMounted(() => {
   applications.value = JSON.parse(localStorage.getItem("applications") || "[]");
   scholarships.value = JSON.parse(localStorage.getItem("scholarships") || "[]");
   students.value = JSON.parse(localStorage.getItem("users") || "[]"); // all users
 });
 
-// Get scholarship title by id
 const getScholarshipTitle = (id: number) => {
   const sch = scholarships.value.find(s => s.id === id);
   return sch ? sch.title : "Unknown";
 };
 
-// Get student name by id
 const getStudentName = (id: number) => {
   const student = students.value.find(s => s.id === id);
   return student ? student.fullName : "Unknown";
 };
 
-// Approve or Reject an application
 const updateStatus = (appId: number, status: "Approved" | "Rejected") => {
   const app = applications.value.find(a => a.id === appId);
   if (!app) return;
