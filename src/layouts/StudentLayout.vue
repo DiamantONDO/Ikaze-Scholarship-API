@@ -15,9 +15,11 @@ import { RouterView, RouterLink } from "vue-router";
         <RouterLink to="/student/profile">My Profile</RouterLink>
         <RouterLink to="/student/education">University Education</RouterLink>
         <RouterLink to="/student/payments">My Payments</RouterLink>
+        <RouterLink id="logout" to="/login">Logout</RouterLink>
       </nav>
     </aside>
 
+    <!-- Main Content -->
     <main class="content">
       <RouterView />
     </main>
@@ -65,5 +67,11 @@ a.router-link-active {
   flex: 1;
   background: #f3f4f6;
   padding: 30px;
+}
+
+#logout{
+  margin-top: 30px;
+  background: #dc2626;
+  text-align: left;
 }
 </style>
