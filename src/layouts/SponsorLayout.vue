@@ -39,6 +39,11 @@ const logout = () => {
           My Scholarships
         </li>
 
+        <li :class="{active: isActive('payments')}"
+            @click="router.push('/sponsor/payments')">
+          Payments
+        </li>
+
         <!--<li :class="{active: isActive('payments')}"
             @click="router.push('/sponsor/payments')">
           Payments
