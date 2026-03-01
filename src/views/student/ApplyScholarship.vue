@@ -5,20 +5,20 @@ import { useRoute, useRouter } from "vue-router";
 const route = useRoute();
 const router = useRouter();
 
-const student = JSON.parse(localStorage.getItem("student_session") || "{}");
+const student = JSON.parse(sessionStorage.getItem("student_session") || "{}");
 const scholarshipId = Number(route.params.scholarshipId);
 
 const scholarship = ref<any>(null);
 
-const fullName = ref(student.fullName || "");
-const age = ref("");
-const sex = ref("");
+const fullName = ref(student.fullName);
+const age = ref(student.age);
+const sex = ref(student.sex);
 const idCardRef = ref<HTMLInputElement | null>(null);
 const equivalenceRef = ref<HTMLInputElement | null>(null);
 const transcriptRef = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
-  const all = JSON.parse(localStorage.getItem("scholarships") || "[]");
+  const all = JSON.parse(sessionStorage.getItem("scholarships") || "[]");
   scholarship.value = all.find((s: any) => s.id === scholarshipId);
 
   // Redirect if already applied
@@ -32,7 +32,16 @@ onMounted(() => {
   }
 });
 
-const submitApplication = () => {
+const toBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
+const submitApplication = async() => {
   const idCard = idCardRef.value?.files?.[0];
   const equivalence = equivalenceRef.value?.files?.[0];
   const transcript = transcriptRef.value?.files?.[0];
@@ -41,6 +50,10 @@ const submitApplication = () => {
     alert("Please fill all fields and upload all required documents.");
     return;
   }
+
+  const idCardBase64 = await toBase64(idCard);
+  const equivalenceBase64 = await toBase64(equivalence);
+  const transcriptBase64 = await toBase64(transcript);
 
   const applications = JSON.parse(localStorage.getItem("applications") || "[]");
 
@@ -93,16 +106,12 @@ const submitApplication = () => {
 
           <div class="form-group">
             <label>Age</label>
-            <input v-model="age" type="number" placeholder="Your Age" min="16" max="24" />
+            <input v-model="age" type="number" placeholder="Your Age" min="16" max="24" readonly />
           </div>
 
           <div class="form-group">
             <label>Sex</label>
-            <select v-model="sex">
-              <option disabled value="">-- Select --</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
+            <input v-model="sex" type="text" placeholder="Sex" readonly />
           </div>
         </div>
       </div>
