@@ -55,7 +55,7 @@ const updateStatus = (status: "Approved" | "Rejected") => {
         <div class="info-row"><label>Sex</label><span>{{ application.details?.sex }}</span></div>
         <div class="info-row"><label>Email</label><span>{{ student?.email }}</span></div>
         <div class="info-row"><label>Phone</label><span>{{ student?.phone }}</span></div>
-        <div class="info-row"><label>University</label><span>{{ student?.university }}</span></div>
+        <div class="info-row"><label>University/College</label><span>{{ student?.high_school }}</span></div>
         <div class="info-row"><label>Field</label><span>{{ student?.field }}</span></div>
         <div class="info-row"><label>Year</label><span>{{ student?.year }}</span></div>
       </div>
@@ -77,6 +77,7 @@ const updateStatus = (status: "Approved" | "Rejected") => {
             <div>
               <p class="doc-label">ID Card / Passport</p>
               <p class="doc-name">{{ application.details?.idCard }}</p>
+              
             </div>
           </div>
           <div class="doc-item">
