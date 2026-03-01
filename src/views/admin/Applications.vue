@@ -56,7 +56,6 @@ const updateStatus = (appId: number, status: "Approved" | "Rejected") => {
     <td>{{ new Date(app.date).toLocaleDateString("en-GB") }}</td>
     <td>{{ app.status }}</td>
     <td>
-      <!--  Details button -->
       <button class="detail-btn" @click="router.push(`/admin/applications/${app.id}`)">
         View Details
       </button>
@@ -66,6 +65,9 @@ const updateStatus = (appId: number, status: "Approved" | "Rejected") => {
       <button style="background-color: #e24960;" v-if="app.status === 'Pending'" @click="updateStatus(app.id, 'Rejected')">Reject</button>
     </td>
   </tr>
+  <tr v-if="applications.length === 0">
+            <td colspan="9" class="empty">No applications yet.</td>
+          </tr>
 </tbody>
     </table>
   </div>
@@ -92,6 +94,12 @@ th, td {
 
 th {
   background: #f0f0f0;
+}
+
+.empty {
+  text-align: center;
+  padding: 30px;
+  color: #9ca3af;
 }
 
 button {
