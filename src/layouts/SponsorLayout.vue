@@ -1,13 +1,27 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from "vue-router";
+import { ref, onMounted } from "vue";
 
 const router = useRouter();
 const route = useRoute();
+const adminName = ref("sponsor");
+
+onMounted(() => {
+  const session = sessionStorage.getItem("sponsor_session");
+  if (session) {
+    try {
+      const data = JSON.parse(session);
+      adminName.value = data.fullName || "";
+    } catch (e) {
+      console.error("Could not parse admin session");
+    }
+  }
+});
 
 const isActive = (name: string) => route.name === name;
 
 const logout = () => {
-  localStorage.removeItem("sponsor_session");
+  sessionStorage.removeItem("sponsor_session");
   router.push("/login");
 };
 </script>
@@ -44,13 +58,12 @@ const logout = () => {
           Payments
         </li>
 
-        <!--<li :class="{active: isActive('payments')}"
-            @click="router.push('/sponsor/payments')">
-          Payments
-        </li>-->
+        <div class="sponsor-profile">
+          <!--<span class="avatar">{{ adminName.charAt(0).toUpperCase() }}</span>-->
+          <span class="name">{{ adminName }}</span>
+        </div>
 
-        <li @click="logout">Sign Out</li>
-        <li id="sponsorName" @click="logout">Sign Out</li>
+        <li class="logout" @click="logout">Sign Out</li>
       </ul>
     </aside>
 
@@ -113,5 +126,29 @@ const logout = () => {
   color:#1e3a8a;
   border-radius: 50%;
   text-align: center;
+}
+
+.sponsor-profile {
+  margin-top: 40px;
+  padding: 12px;
+  border-top: 1px solid #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logout{
+  margin-top: 30px;
+  background: #dc2626;
+  text-align: center;
+}
+
+.logout:hover{
+  background: #b91c1c;
+}
+
+.name{
+  font-weight: bold;
+  font-size: 16px;
 }
 </style>
