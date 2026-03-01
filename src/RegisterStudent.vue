@@ -5,6 +5,11 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 const fullName = ref("");
+const age = ref("");
+const sex = ref("");
+const idCard = ref("");
+const equivalence = ref("");
+const transcript = ref("");
 const email = ref("");
 const password = ref("");
 const phone = ref("");
@@ -17,7 +22,7 @@ const motherName = ref("");
 const motherPhone = ref("");
 
 const register = () => {
-  const users = JSON.parse(localStorage.getItem("users") || "[]");
+  const users = JSON.parse(localStorage.getItem("users") || "[]");//Explain
 
   const existingUser = users.find((u: any) => u.email === email.value);
   if (existingUser) {
@@ -29,6 +34,11 @@ const register = () => {
     id: Date.now(),
     role: "student",
     fullName: fullName.value,
+    age: age.value,
+    sex: sex.value,
+    idCard: idCard.value,
+    equivalence: equivalence.value,
+    transcript: transcript.value,
     email: email.value,
     password: password.value,
     phone: phone.value,
@@ -57,6 +67,12 @@ const register = () => {
       <fieldset>
         <legend>Personal Information</legend>
         <input v-model="fullName" placeholder="Full Name" required />
+        <div class="form-group">
+          <label>Sex:</label>
+          <label><input type="radio" v-model="sex" value="Male" required readonly/> Male</label>
+          <label><input type="radio" v-model="sex" value="Female" required  readonly/> Female</label>
+        </div>
+        <input v-model="age" placeholder="Age" required />
         <input v-model="email" type="email" placeholder="Email" required />
         <input v-model="password" type="password" placeholder="Password" required />
         <input v-model="phone" placeholder="Phone Number" required />
