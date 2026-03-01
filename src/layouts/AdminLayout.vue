@@ -1,13 +1,29 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from "vue-router";
+import { ref, onMounted } from "vue";
 
 const router = useRouter();
 const route = useRoute();
+const adminName = ref("admin");
+
+onMounted(() => {
+  const session = sessionStorage.getItem("admin_session");
+  if (session) {
+    try {
+      const data = JSON.parse(session);
+      adminName.value = data.fullName || "";
+    } catch (e) {
+      console.error("Could not parse admin session");
+    }
+  }
+}
+);
+
 
 const isActive = (name: string) => route.name === name;
 
 const logout = () => {
-  localStorage.removeItem("admin_session");
+  sessionStorage.removeItem("admin_session");
   router.push("/login");
 };
 </script>
@@ -44,6 +60,11 @@ const logout = () => {
             @click="router.push('/admin/payments')">
           Payments
         </li>
+
+        <div class="admin-profile">
+          <!--<span class="avatar">{{ adminName.charAt(0).toUpperCase() }}</span>-->
+          <span class="name">{{ adminName }}</span>
+        </div>
 
         <li class="logout" @click="logout">
           Sign Out
@@ -116,5 +137,19 @@ const logout = () => {
   flex: 1;
   padding: 30px;
   background: #f3f4f6;
+}
+
+.admin-profile {
+  margin-top: 40px;
+  padding: 12px;
+  border-top: 1px solid #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.name{
+  font-weight: bold;
+  font-size: 16px;
 }
 </style>
