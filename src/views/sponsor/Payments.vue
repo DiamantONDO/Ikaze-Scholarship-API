@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 
-const sponsor = JSON.parse(localStorage.getItem("sponsor_session") || "null");
+const sponsor = JSON.parse(sessionStorage.getItem("sponsor_session") || "null");
 
 interface Application {
   id: number;
@@ -87,7 +87,6 @@ const selectedAmount = computed(() => {
   return getScholarship(selectedScholarshipId.value)?.amount || 0;
 });
 
-// Pay a student
 const processPayment = () => {
   if (!selectedStudentId.value || !selectedScholarshipId.value || !selectedDate.value) {
     alert("Please select a scholarship, student and date.");
@@ -126,7 +125,7 @@ const processPayment = () => {
   selectedDate.value = "";
 };
 
-// Payment history for this sponsor
+// Payment history
 const sponsorPayments = computed(() =>
   payments.value.filter(p => p.sponsorId === sponsor.id)
 );
@@ -136,13 +135,11 @@ const sponsorPayments = computed(() =>
   <div class="page">
     <h1>Payments</h1>
 
-    <!-- Payment Form -->
     <div class="form-card">
       <h2>Process New Payment</h2>
 
       <div class="form-grid">
         
-        <!-- Select Scholarship -->
         <div class="form-group">
           <label>Select Scholarship</label>
           <select v-model="selectedScholarshipId">
@@ -154,7 +151,6 @@ const sponsorPayments = computed(() =>
         </div>
 
 
-        <!-- Select Student -->
         <div class="form-group">
           <label>Select Student</label>
           <select v-model="selectedStudentId" :disabled="!selectedScholarshipId">
@@ -171,13 +167,11 @@ const sponsorPayments = computed(() =>
           </select>
         </div>
 
-        <!-- Select Date -->
         <div class="form-group">
           <label>Payment Date</label>
-          <input type="date" v-model="selectedDate"/>
+          <input style="height: 58%;" type="date" v-model="selectedDate"/>
         </div>
 
-        <!-- Amount Preview -->
         <div class="form-group">
           <label>Amount to Pay</label>
           <div class="amount-box">
@@ -191,7 +185,6 @@ const sponsorPayments = computed(() =>
       </button>
     </div>
 
-    <!-- Payment History -->
     <div class="table-card">
       <h2>Payment History</h2>
       <table>
@@ -230,6 +223,7 @@ const sponsorPayments = computed(() =>
   padding: 30px;
   font-family: Arial, Helvetica, sans-serif;
   color: #1e3a8a;
+  padding-top: 0px;
 }
 
 .form-card, .table-card {
@@ -238,6 +232,7 @@ const sponsorPayments = computed(() =>
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   margin-bottom: 30px;
+  
 }
 
 .form-card h2, .table-card h2 {
@@ -256,11 +251,12 @@ const sponsorPayments = computed(() =>
   display: flex;
   flex-direction: column;
   gap: 6px;
+  font-size: 21px;
 }
 
 .form-group label {
   font-weight: bold;
-  font-size: 14px;
+  font-size: 21px;
 }
 
 .form-group select {
@@ -304,6 +300,7 @@ th, td {
   padding: 12px 10px;
   border: 1px solid #eee;
   text-align: left;
+  font-size: 21px;
 }
 
 th {
