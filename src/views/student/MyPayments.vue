@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 
-const student = JSON.parse(localStorage.getItem("student_session") || "null");
+const student = JSON.parse(sessionStorage.getItem("student_session") || "null");
 
 interface Payment {
   id: number;
@@ -43,7 +43,6 @@ onMounted(() => {
 const getScholarship = (id: number) => scholarships.value.find(s => s.id === id);
 const getSponsor = (id: number) => sponsors.value.find(s => s.id === id);
 
-// Summary stats
 const totalReceived = computed(() =>
   payments.value
     .filter(p => p.status === "paid")
@@ -75,7 +74,6 @@ const groupedPayments = computed(() => {
   <div class="page">
     <h1 class="page-title">My Payments</h1>
 
-    <!-- Summary Cards -->
     <div class="stats-row">
       <div class="stat-card green">
         <div class="stat-icon"></div>
@@ -113,7 +111,6 @@ const groupedPayments = computed(() => {
       :key="group.scholarship?.id"
       class="group-card"
     >
-      <!-- Scholarship Header -->
       <div class="group-header">
         <div>
           <h2>{{ group.scholarship?.title || "Unknown Scholarship" }}</h2>
@@ -124,7 +121,6 @@ const groupedPayments = computed(() => {
         </div>
       </div>
 
-      <!-- Payments Table -->
       <table>
         <thead>
           <tr>
@@ -173,8 +169,10 @@ const groupedPayments = computed(() => {
 <style scoped>
 .page {
   padding: 30px;
-  font-family: Arial, Helvetica, sans-serif;
   color: #1e3a8a;
+  font-family: Arial, Helvetica, sans-serif;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
 .page-title {
@@ -211,7 +209,7 @@ const groupedPayments = computed(() => {
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 21px;
   color: #6b7280;
   margin: 0;
   font-size: larger;
@@ -248,7 +246,7 @@ const groupedPayments = computed(() => {
 }
 
 .group-meta {
-  font-size: 14px;
+  font-size: 19px;
   opacity: 0.9;
 }
 
@@ -259,7 +257,6 @@ const groupedPayments = computed(() => {
   font-size: 12px;
 }
 
-/* Table */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -269,16 +266,16 @@ th, td {
   padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid #f0f0f0;
-  font-size: 14px;
+  font-size: 24px;
 }
 
 th {
   background: #f9fafb;
   font-weight: 600;
   color: #374151;
+  font-size: 21px;
 }
 
-/* Subtotal Row */
 .subtotal-row td {
   background: #f0f4ff;
   font-weight: bold;
@@ -286,11 +283,10 @@ th {
   border-top: 2px solid #c7d2fe;
 }
 
-/* Badge */
 .badge {
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 21px;
   font-weight: bold;
 }
 

@@ -10,7 +10,7 @@ const student = ref({
   transcript: "",
   email: "",
   phone: "",
-  university: "",
+  high_school: "",
   field: "",
   year: "",
   fatherName: "",
@@ -20,7 +20,7 @@ const student = ref({
 });
 
 onMounted(() => {
-  const loggedIn = JSON.parse(localStorage.getItem("student_session") || "null");
+  const loggedIn = JSON.parse(sessionStorage.getItem("student_session") || "null");
   if (loggedIn) {
     student.value = { ...student.value, ...loggedIn };
   }
@@ -39,7 +39,7 @@ onMounted(() => {
         <div><label>Age</label><p>{{ student.age }}</p></div>
         <div><label>Email</label><p>{{ student.email }}</p></div>
         <div><label>Phone</label><p>{{ student.phone }}</p></div>
-        <div><label>University</label><p>{{ student.university }}</p></div>
+        <div><label>High School</label><p>{{ student.high_school }}</p></div>
         <div><label>Field</label><p>{{ student.field }}</p></div>
         <div><label>Year</label><p>{{ student.year }}</p></div>
       </div>
@@ -61,9 +61,11 @@ onMounted(() => {
 
 <style scoped>
 .page-title {
-  font-size: 26px;
+  padding: 30px;
   color: #1e3a8a;
-  margin-bottom: 20px;
+  font-family: Arial, Helvetica, sans-serif;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
 .card {
@@ -84,19 +86,21 @@ onMounted(() => {
   grid-template-columns: 1fr 1fr;
   gap: 15px;
   font-size: x-large;
+  color: gray;
 }
 
 label {
   font-size: 12px;
-  color: gray;
+  color: #1e3a8a;
   display: block;
   margin-bottom: 4px;
+  font-weight: bold;
   font-size: large;
 }
 
 p {
-  font-weight: bold;
-  color: #1e3a8a;
+  font-weight: 500;
+  color: rgb(69, 69, 69);
   margin: 0;
 }
 
@@ -106,7 +110,6 @@ p {
   color: white;
   border: none;
   border-radius: 8px;
-  font-weight: bold;
   cursor: pointer;
 }
 </style>

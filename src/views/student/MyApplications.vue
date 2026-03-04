@@ -78,6 +78,8 @@ const statusColor = (status: string) => {
   padding: 30px;
   color: #1e3a8a;
   font-family: Arial, Helvetica, sans-serif;
+  padding-top: 0px;
+  font-size: 21px;
 }
 
 .applications-table {

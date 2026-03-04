@@ -82,6 +82,7 @@ const getScholarship = (id: number) => scholarships.value.find(s => s.id === id)
   padding: 30px;
   font-family: Arial, Helvetica, sans-serif;
   color: #1e3a8a;
+  padding-top: 0px;
 }
 
 .applications-table {
@@ -95,6 +96,7 @@ const getScholarship = (id: number) => scholarships.value.find(s => s.id === id)
   border: 1px solid #ccc;
   padding: 12px 10px;
   text-align: left;
+  font-size: 21px;
 }
 
 .applications-table th {
