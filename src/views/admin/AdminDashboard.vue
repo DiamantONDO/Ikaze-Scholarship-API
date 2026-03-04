@@ -148,6 +148,7 @@ const recentApplications = computed(() =>
   padding: 30px;
   font-family: Arial, Helvetica, sans-serif;
   color: #1e3a8a;
+  padding-top: 0px;
 }
 
 .page-title {
