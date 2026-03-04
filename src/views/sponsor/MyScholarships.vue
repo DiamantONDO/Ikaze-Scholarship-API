@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-const sponsor = JSON.parse(localStorage.getItem("sponsor_session") || "null");
+const sponsor = JSON.parse(sessionStorage.getItem("sponsor_session") || "null");
 
 interface Scholarship {
   id: number;
@@ -91,6 +91,7 @@ tr{
   padding: 30px;
   font-family: Arial, Helvetica, sans-serif;
   color: #1e3a8a;
+  padding-top: 0px;
 }
 
 .scholarship-table {
@@ -105,6 +106,7 @@ tr{
   border: 1px solid #ccc;
   padding: 12px 10px;
   text-align: left;
+  font-size: 21px;
 }
 
 .scholarship-table th {
