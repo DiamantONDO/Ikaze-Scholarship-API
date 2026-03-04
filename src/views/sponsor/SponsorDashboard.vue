@@ -21,120 +21,119 @@ interface Payment {
 interface Application {
   id: number;
   scholarshipId: number;
+  studentId: number;
   status: string;
+  date: string;
 }
 
-const sponsor = JSON.parse(localStorage.getItem("sponsor_session") || "null");
+const sponsor = JSON.parse(sessionStorage.getItem("sponsor_session") || "null");
 
 const scholarships = ref<Scholarship[]>([]);
 const payments = ref<Payment[]>([]);
 const applications = ref<Application[]>([]);
 
-const fetchScholarships = () => {
+const fetchData = () => {
   const all = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  scholarships.value = all.filter((s: Scholarship) => s.sponsorId === sponsor.id);
+  scholarships.value = all.filter((s: Scholarship) => Number(s.sponsorId) === Number(sponsor.id));
 
   const allPayments: Payment[] = JSON.parse(localStorage.getItem("payments") || "[]");
-  payments.value = allPayments.filter(p => p.sponsorId === sponsor.id);
+  payments.value = allPayments.filter(p => Number(p.sponsorId) === Number(sponsor.id));
 
   const allApps: Application[] = JSON.parse(localStorage.getItem("applications") || "[]");
   const sponsorScholarshipIds = scholarships.value.map(s => s.id);
   applications.value = allApps.filter(a => sponsorScholarshipIds.includes(a.scholarshipId));
 };
 
-onMounted(fetchScholarships);
-
+onMounted(fetchData);
 
 const totalScholarships = computed(() => scholarships.value.length);
-
-const activeScholarships = computed(() =>
-  scholarships.value.filter(s => s.status === "active").length
-);
-
-// Total funds = sum of all scholarship amounts
-const availableFunds = computed(() =>
-  scholarships.value.reduce((sum, s) => sum + s.amount, 0)
-);
-
-// Payments done = count of paid payments by this sponsor
+const activeScholarships = computed(() => scholarships.value.filter(s => s.status === "active").length);
+const totalApplications = computed(() => applications.value.length);
+const availableFunds = computed(() => scholarships.value.reduce((sum, s) => sum + s.amount, 0));
 const paymentsDone = computed(() => payments.value.filter(p => p.status === "paid").length);
-
-// Pending = accepted applications that have no payment yet
-const pendingPayments = computed(() =>
-  applications.value.filter(app => {
-    if (app.status !== "accepted") return false;
-    return !payments.value.find(p => p.sponsorId === sponsor.id);
-  }).length
+const totalAmountPaid = computed(() =>
+  payments.value.filter(p => p.status === "paid").reduce((sum, p) => sum + p.amount, 0)
 );
+
+const pendingApplications = computed(() => applications.value.filter(a => a.status === "Pending").length);
+const approvedApplications = computed(() => applications.value.filter(a => a.status === "Approved").length);
 
 const getStatus = (deadline: string) =>
   new Date(deadline) >= new Date() ? "Active" : "Closed";
 
-
-
-const closedScholarships = computed(() =>
-  scholarships.value.filter(s => s.status === "inactive").length
+// Show last 5 scholarships
+const recentScholarships = computed(() =>
+  [...scholarships.value].reverse().slice(0, 5)
 );
-
-const deleteScholarship = (id: number) => {
-  let all = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  all = all.filter((s: Scholarship) => s.id !== id);
-  localStorage.setItem("scholarships", JSON.stringify(all));
-  fetchScholarships();
-};
 </script>
 
 <template>
   <div class="dashboard">
-
     <h1 class="page-title">Sponsor Dashboard</h1>
 
-    <div class="grid">
-
-      <div class="card">
-        <h3>Total Scholarships</h3>
-        <p>{{ totalScholarships }}</p>
+    <div class="stats">
+      <div class="card blue">
+        <div class="card-icon"></div>
+        <div>
+          <h3>Total Scholarships</h3>
+          <p>{{ totalScholarships }}</p>
+        </div>
       </div>
 
-      <div class="card">
-        <h3>Active</h3>
-        <p>{{ activeScholarships }}</p>
-      </div>
-      
-      <div class="card">
-        <h3>Available Funds</h3>
-        <p>15,000,995 RWF</p>
+      <div class="card green">
+        <div class="card-icon"></div>
+        <div>
+          <h3>Active</h3>
+          <p>{{ activeScholarships }}</p>
+        </div>
       </div>
 
-      <div class="card">
-        <h3>Total Scholarship Amount</h3>
-        <p>{{ availableFunds.toLocaleString() }} RWF</p>
+      <div class="card orange">
+        <div class="card-icon"></div>
+        <div>
+          <h3>Total Applications</h3>
+          <p>{{ totalApplications }}</p>
+        </div>
       </div>
 
-      <div class="card">
-        <h3>Payments Done</h3>
-        <p>{{ paymentsDone }}</p>
+      <div class="card navy">
+        <div class="card-icon"></div>
+        <div>
+          <h3>Total Amount Paid</h3>
+          <p>{{ totalAmountPaid.toLocaleString() }} RWF</p>
+        </div>
       </div>
-
-      <div class="card">
-        <h3>Pending Payments</h3>
-        <p>{{ pendingPayments }}</p>
-      </div>
-
     </div>
 
-    <!--Scholarships Table-->
-    <div class="table-container">
+    <div class="stats secondary">
+      <div class="mini-card">
+        <span class="mini-label">Scholarship Funds</span>
+        <span class="mini-value navy-text">{{ availableFunds.toLocaleString() }} RWF</span>
+      </div>
+      <div class="mini-card">
+        <span class="mini-label">Payments Done</span>
+        <span class="mini-value green-text">{{ paymentsDone }}</span>
+      </div>
+      <div class="mini-card">
+        <span class="mini-label">Pending Applications</span>
+        <span class="mini-value orange-text">{{ pendingApplications }}</span>
+      </div>
+      <div class="mini-card">
+        <span class="mini-label">Approved Applications</span>
+        <span class="mini-value blue-text">{{ approvedApplications }}</span>
+      </div>
+    </div>
+
+    <div class="table-section">
       <div class="table-header">
         <h2>My Scholarships</h2>
-        <RouterLink to="/sponsor/post" class="add-btn">
-          + Post New
-        </RouterLink>
+        <RouterLink to="/sponsor/post" class="add-btn">+ Post New</RouterLink>
       </div>
 
       <table>
         <thead>
           <tr>
+            <th>#</th>
             <th>Title</th>
             <th>Field</th>
             <th>Amount (RWF)</th>
@@ -144,30 +143,24 @@ const deleteScholarship = (id: number) => {
         </thead>
 
         <tbody>
-          <tr v-for="scholarship in scholarships" :key="scholarship.id">
+          <tr v-for="(scholarship, index) in recentScholarships" :key="scholarship.id">
+            <td>{{ index + 1 }}</td>
             <td>{{ scholarship.title }}</td>
             <td>{{ scholarship.field }}</td>
             <td>{{ scholarship.amount.toLocaleString() }}</td>
-            <td>{{ scholarship.deadline }}</td>
+            <td>{{ new Date(scholarship.deadline).toLocaleDateString("en-GB") }}</td>
             <td>
-              <span
-                :class="getStatus(scholarship.deadline) === 'Active'
-                  ? 'active'
-                  : 'closed'"
-              >
+              <span :class="['badge', getStatus(scholarship.deadline).toLowerCase()]">
                 {{ getStatus(scholarship.deadline) }}
               </span>
             </td>
           </tr>
 
           <tr v-if="scholarships.length === 0">
-            <td colspan="6" class="empty">
-              No scholarships posted yet.
-            </td>
+            <td colspan="6" class="empty">No scholarships posted yet.</td>
           </tr>
         </tbody>
       </table>
-
     </div>
 
   </div>
@@ -175,66 +168,101 @@ const deleteScholarship = (id: number) => {
 
 <style scoped>
 .dashboard {
-  padding: 20px;
+  padding: 30px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #1e3a8a;
 }
 
 .page-title {
   font-size: 26px;
-  margin-bottom: 20px;
-  color: #1e3a8a;
+  font-weight: bold;
+  margin-bottom: 24px;
 }
 
-/* Stats Section */
-.grid {
+.stats {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .card {
-  flex: 1 1 calc(33.333% - 20px); 
-  box-sizing: border-box;
-  background-color: rgb(169, 236, 226);
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  text-align: center;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+.card-icon { font-size: 32px; }
+
 .card h3 {
-  font-size: 16px;
-  margin-bottom: 10px;
+  margin: 0 0 6px;
+  font-size: 22px;
+  opacity: 0.85;
 }
 
 .card p {
-  font-size: 24px;
+  margin: 0;
+  font-size: 38px;
   font-weight: bold;
-  color: #1e3a8a;
 }
 
-/* Table */
-.table-container {
+.card.blue  { background: #3b82f6; }
+.card.green { background: #3b82f6; }
+.card.orange { background: #16a34a; }
+.card.navy  { background: #1e3a8a; }
+
+.stats.secondary {
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.mini-card {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background: white;
-  padding: 20px;
+  padding: 16px 15px;
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  font-size: 14px;
+}
+
+.mini-label { color: #374151; font-size: 18px;}
+.mini-value { font-size: 20px; font-weight: bold; }
+.navy-text   { color: #1e3a8a; font-size: 21px;}
+.green-text  { color: #16a34a; }
+.orange-text { color: #f97316; }
+.blue-text   { color: #3b82f6; }
+
+.table-section {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.07);
 }
 
 .table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
+
+.table-header h2 { margin: 0; font-size: 17px; }
 
 .add-btn {
   background: #1e3a8a;
   color: white;
-  padding: 8px 15px;
+  padding: 8px 16px;
   border-radius: 6px;
   text-decoration: none;
   font-weight: bold;
+  font-size: 14px;
 }
 
 table {
@@ -243,33 +271,26 @@ table {
 }
 
 th, td {
-  padding: 12px;
+  padding: 12px 10px;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 21px;
 }
 
 th {
-  background: #f3f4f6;
-}
-
-.active {
-  color: green;
-  font-weight: bold;
-}
-
-.closed {
-  color: red;
-  font-weight: bold;
-}
-
-.delete-btn {
-  background: red;
+  background: #1e3a8a;
   color: white;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
 }
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.badge.active { background: #dcfce7; color: #16a34a; }
+.badge.closed { background: #fee2e2; color: #dc2626; }
 
 .empty {
   text-align: center;
