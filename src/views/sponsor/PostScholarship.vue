@@ -165,6 +165,7 @@ const submitScholarship = () => {
   padding: 30px;
   font-family: Arial, Helvetica, sans-serif;
   color: #1e3a8a;
+  padding-top: 0px;
 }
 
 .form-card {
@@ -185,7 +186,7 @@ const submitScholarship = () => {
 .form-group label {
   margin-bottom: 6px;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 21px;
 }
 
 .form-group input,
@@ -194,7 +195,7 @@ const submitScholarship = () => {
   padding: 10px 12px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 14px;
+  font-size: 21px;
   font-family: inherit;
   resize: vertical;
 }
@@ -209,7 +210,7 @@ const submitScholarship = () => {
   padding: 10px 12px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 14px;
+  font-size: 21px;
 }
 
 .add-btn {
@@ -240,7 +241,7 @@ const submitScholarship = () => {
   border: 1px solid #c7d2fe;
   padding: 8px 12px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 21px;
   color: #1e3a8a;
 }
 
@@ -248,7 +249,7 @@ const submitScholarship = () => {
   background: none;
   border: none;
   color: #dc2626;
-  font-size: 14px;
+  font-size: 21px;
   cursor: pointer;
   font-weight: bold;
   padding: 0 4px;
@@ -269,7 +270,7 @@ const submitScholarship = () => {
   font-weight: bold;
   cursor: pointer;
   margin-top: 10px;
-  font-size: 15px;
+  font-size: 21px;
 }
 
 .submit-btn:hover {
