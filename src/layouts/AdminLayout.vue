@@ -32,6 +32,9 @@ const logout = () => {
   <div class="layout">
 
     <aside class="sidebar">
+      <RouterLink to="/home" class="logo-link">
+        <h2>IKAZEScholarship</h2>
+      </RouterLink>
 
       <h2 class="logo">Admin Panel</h2>
 
@@ -86,6 +89,20 @@ const logout = () => {
   min-height: 100vh;
   font-family: Arial, Helvetica, sans-serif;
   overflow: hidden;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: white;
+  margin-bottom: 30px;
+}
+
+.logo-link h2 {
+  margin: 0;
+  font-size: 20px;
 }
 
 .sidebar {
