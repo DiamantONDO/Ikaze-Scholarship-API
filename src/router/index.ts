@@ -1,6 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-
-// Import your pages
 import HomePage from "@/views/HomePage.vue";
 import Login from "@/views/Login.vue";
 import Register from "@/views/Register.vue";
@@ -59,6 +57,41 @@ const router = createRouter({
 });
 
 //Page Guards
- 
+router.beforeEach((to, _from, next) => {
+  //Check meta across ALL matched routes (parent + child)
+  const requiredRole = to.matched.find(r => r.meta?.role)?.meta?.role as string | undefined;
+
+  if (!requiredRole) {
+    if (to.name === "login" || to.name === "register" || to.name === "register-student") {
+      const studentSession = sessionStorage.getItem("student_session");
+      const sponsorSession = sessionStorage.getItem("sponsor_session");
+      const adminSession   = sessionStorage.getItem("admin_session");
+
+      if (studentSession) return next("/student/dashboard");
+      if (sponsorSession) return next("/sponsor/dashboard");
+      if (adminSession)   return next("/admin/dashboard");
+    }
+    return next();
+  }
+
+  const sessionKey = `${requiredRole}_session`;
+  const session = sessionStorage.getItem(sessionKey);
+
+  if (!session) return next("/login");
+
+  try {
+    const user = JSON.parse(session);
+    if (user.role !== requiredRole) {
+      if (user.role === "student") return next("/student/dashboard");
+      if (user.role === "sponsor") return next("/sponsor/dashboard");
+      if (user.role === "admin")   return next("/admin/dashboard");
+      return next("/login");
+    }
+    return next();
+  } catch {
+    sessionStorage.removeItem(sessionKey);
+    return next("/login");
+  }
+});
 
 export default router;
