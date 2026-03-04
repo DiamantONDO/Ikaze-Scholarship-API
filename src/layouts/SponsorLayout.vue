@@ -30,6 +30,9 @@ const logout = () => {
   <div class="layout">
 
     <aside class="sidebar">
+      <RouterLink to="/home" class="logo-link">
+        <h2>IKAZEScholarship</h2>
+      </RouterLink>
       <h2 class="logo">Sponsor Panel</h2>
 
       <ul class="menu">
@@ -84,7 +87,7 @@ const logout = () => {
 
 .sidebar {
   width: 220px;
-  background: #1e3a8a;
+  background: #111827;
   color: white;
   padding: 20px;
   position: fixed;
@@ -159,5 +162,19 @@ const logout = () => {
 .name{
   font-weight: bold;
   font-size: 16px;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: white;
+  margin-bottom: 30px;
+}
+
+.logo-link h2 {
+  margin: 0;
+  font-size: 20px;
 }
 </style>
