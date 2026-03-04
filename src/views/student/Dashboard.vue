@@ -119,7 +119,8 @@ const getScholarshipTitle = (id: number) => {
         </div>
         <div>
           <p class="lp-label">Date</p>
-          <p class="lp-value">{{ new Date(lastPayment.date).toLocaleDateString("en-GB") }}</p>
+          <!--Because I have used "month" for date onn sponsor side -->
+          <p class="lp-value">{{ new Date(lastPayment.month).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) }}</p>
         </div>
         <div>
           <p class="lp-label">Status</p>
