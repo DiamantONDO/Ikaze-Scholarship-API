@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 const student = JSON.parse(sessionStorage.getItem("student_session") || "{}");
+const users = ref<any[]>([]);
 
 const scholarships = ref<any[]>([]);
 const applications = ref<any[]>([]);
@@ -11,7 +12,14 @@ const applications = ref<any[]>([]);
 onMounted(() => {
   scholarships.value = JSON.parse(localStorage.getItem("scholarships") || "[]");
   applications.value = JSON.parse(localStorage.getItem("applications") || "[]");
+    users.value = JSON.parse(localStorage.getItem("users") || "[]");
+
 });
+
+const getSponsorName = (sponsorId: number) => {
+  const sponsor = users.value.find((u) => u.id === sponsorId);
+  return sponsor ? sponsor.fullName : "Unknown Sponsor";
+}
 
 const hasApplied = (scholarshipId: number) => {
   return applications.value.some(
@@ -19,7 +27,7 @@ const hasApplied = (scholarshipId: number) => {
   );
 };
 
-// Redirect to apply page instead of direct apply
+// Go to /student/scholarships/:id
 const goToApply = (scholarshipId: number) => {
   router.push(`/student/scholarships/${scholarshipId}`);
 };
@@ -36,11 +44,13 @@ const goToApply = (scholarshipId: number) => {
       <div class="card" v-for="sch in scholarships" :key="sch.id">
         <div class="card-header">
           <h4>{{ sch.name }}</h4>
-          <h3>{{ sch.title }}</h3>
+          <h3>{{ getSponsorName(sch.sponsorId) }}</h3>
           <span :class="['status-badge', sch.status]">{{ sch.status.toUpperCase() }}</span>
         </div>
+        <p><strong>Scholarship:</strong> {{ sch.title }}</p>
         <p><strong>Field:</strong> {{ sch.field }}</p>
         <p><strong>Description:</strong> {{ sch.description }}</p>
+        <p><strong>Funding:</strong> {{ sch.funding }}</p>
         <p><strong>Amount:</strong> {{ sch.amount?.toLocaleString() }} RWF</p>
         <p><strong>Deadline:</strong> {{ new Date(sch.deadline).toLocaleDateString("en-GB") }}</p>
 
@@ -61,6 +71,7 @@ const goToApply = (scholarshipId: number) => {
   padding: 30px;
   font-family: Arial, Helvetica, sans-serif;
   color: #1e3a8a;
+  padding-top: 0px;
 }
 
 .scholarships-grid {
