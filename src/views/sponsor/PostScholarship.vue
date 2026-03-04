@@ -8,12 +8,21 @@ const sponsor = JSON.parse(sessionStorage.getItem("sponsor_session") || "null");
 
 const title = ref("");
 const field = ref("");
+const funding = ref("");
 const amount = ref<number | null>(null);
 const deadline = ref("");
 const description = ref("");
 const requirementInput = ref("");
 const requirements = ref<string[]>([]);
 const status = ref<"active" | "inactive">("active");
+const fieldList = [
+  "Computer Science", "Marketing", "Medicine", "MBC (Media & Business)", 
+  "Accounting", "Civil Engineering", "Psychology", "Economics", 
+  "Education", "Law", "Architecture", "Biology", 
+  "Mathematics", "Chemistry"
+]
+
+
 
 // Add a requirement to the list
 const addRequirement = () => {
@@ -45,6 +54,7 @@ const submitScholarship = () => {
     id: Date.now(),
     sponsorId: sponsor.id,
     title: title.value,
+    funding: funding.value,
     field: field.value,
     amount: amount.value,
     deadline: deadline.value,
@@ -82,8 +92,19 @@ const submitScholarship = () => {
       </div>
 
       <div class="form-group">
-        <label>Field of Study</label>
-        <input type="text" v-model="field" placeholder="e.g. Computer Science" />
+        <label for="field-study">Field of Study</label>
+        <select id="field-study" v-model="field">
+          <option disabled value="">Select one from list below</option>
+           <option v-for="option in fieldList" :key="option" :value="option">
+            {{ option }}
+          </option>
+        </select>
+      </div>
+
+
+      <div class="form-group">
+        <label>Funding</label>
+        <input type="textarea" v-model="field" placeholder="e.g. Funding Source" />
       </div>
 
       <div class="form-group">
