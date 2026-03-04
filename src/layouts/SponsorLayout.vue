@@ -79,6 +79,7 @@ const logout = () => {
   display: flex;
   min-height: 100vh;
   font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -86,6 +87,11 @@ const logout = () => {
   background: #1e3a8a;
   color: white;
   padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .logo {
@@ -118,6 +124,9 @@ const logout = () => {
   flex: 1;
   padding: 30px;
   background: #f9fafb;
+  overflow-y: auto;
+  margin-left: 220px;
+  margin-top: 0px;
 }
 
 #sponsorName{
