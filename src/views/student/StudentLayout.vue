@@ -39,6 +39,11 @@ import { RouterView, RouterLink } from "vue-router";
   color: white;
   padding: 20px;
   font-size: x-large;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .logo {
@@ -67,6 +72,9 @@ a.router-link-active {
   flex: 1;
   background: #f3f4f6;
   padding: 30px;
+  overflow-y: auto;
+  margin-left: 220px;
+  margin-top: 0px;
 }
 
 #logout{
