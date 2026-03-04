@@ -104,7 +104,7 @@ const submitScholarship = () => {
 
       <div class="form-group">
         <label>Funding</label>
-        <input type="textarea" v-model="field" placeholder="e.g. Funding Source" />
+        <input type="textarea" v-model="funding" placeholder="e.g. Funding Source" />
       </div>
 
       <div class="form-group">
