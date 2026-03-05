@@ -232,7 +232,7 @@ const register = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 30px 20px;
   font-family: Arial, Helvetica, sans-serif;
 }
 
