@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, nextTick } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -9,7 +9,7 @@ const password = ref("");
 const showPassword = ref(false);
 const errorMessage = ref("");
 
-const login = () => {
+const login = async () => {
   errorMessage.value = "";
 
   const users = JSON.parse(localStorage.getItem("users") || "[]");
@@ -40,19 +40,16 @@ const login = () => {
   <div class="page">
     <div class="card">
 
-      <!-- Header -->
       <div class="card-header">
         <div class="logo"></div>
         <h1>Welcome Back</h1>
         <p>Sign in to your account</p>
       </div>
 
-      <!-- Error Message -->
       <div class="error-box" v-if="errorMessage">
          {{ errorMessage }}
       </div>
 
-      <!-- Form -->
       <form @submit.prevent="login" class="form">
 
         <div class="form-group">
@@ -118,7 +115,7 @@ const login = () => {
 }
 
 .card {
-  background: white;
+  background: rgba(255, 255, 255, 0.881);
   border-radius: 20px;
   padding: 40px;
   width: 100%;
@@ -226,7 +223,7 @@ const login = () => {
 }
 
 .submit-btn:hover {
-  background: #2d4fa3;
+  background: #08662b;
 }
 
 .links {
