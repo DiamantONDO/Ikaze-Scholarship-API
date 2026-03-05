@@ -14,6 +14,7 @@ const router = createRouter({
     {
       path: "/sponsor", redirect: "/sponsor/dashboard",
       component: () => import("@/layouts/SponsorLayout.vue"),
+      meta: { requiresAuth: true, role: "sponsor" },
       children: [
         { path: "dashboard", name: "sponsor-dashboard", component: () => import("@/views/sponsor/SponsorDashboard.vue") },
         { path: "post", name: "post-scholarship", component: () => import("@/views/sponsor/PostScholarship.vue") },
@@ -26,6 +27,7 @@ const router = createRouter({
     {
       path: "/admin", redirect: "/admin/dashboard",
       component: () => import("@/layouts/AdminLayout.vue"),
+      meta: { requiresAuth: true, role: "admin" },
       children: [
         { path: "dashboard", name: "admin-dashboard", component: () => import("@/views/admin/AdminDashboard.vue") },
         { path: "students", name: "admin-students", component: () => import("@/views/admin/Students.vue") },
@@ -39,6 +41,7 @@ const router = createRouter({
     {
       path: "/student", redirect: "/student/dashboard",
       component: () => import("@/views/student/StudentLayout.vue"),
+      meta: { requiresAuth: true, role: "student" },
       children: [
         { path: "dashboard", name: "student-dashboard", component: () => import("@/views/student/Dashboard.vue") },
         { path: "scholarships", name: "student-scholarships", component: () => import("@/views/student/Scholarships.vue") },
@@ -57,8 +60,7 @@ const router = createRouter({
 });
 
 //Page Guards
-router.beforeEach((to, _from, next) => {
-  //Check meta across ALL matched routes (parent + child)
+router.beforeEach((to, _from) => {
   const requiredRole = to.matched.find(r => r.meta?.role)?.meta?.role as string | undefined;
 
   if (!requiredRole) {
@@ -67,31 +69,30 @@ router.beforeEach((to, _from, next) => {
       const sponsorSession = sessionStorage.getItem("sponsor_session");
       const adminSession   = sessionStorage.getItem("admin_session");
 
-      if (studentSession) return next("/student/dashboard");
-      if (sponsorSession) return next("/sponsor/dashboard");
-      if (adminSession)   return next("/admin/dashboard");
+      if (studentSession) return "/student/dashboard";
+      if (sponsorSession) return "/sponsor/dashboard";
+      if (adminSession)   return "/admin/dashboard";
     }
-    return next();
+    return true;
   }
 
   const sessionKey = `${requiredRole}_session`;
   const session = sessionStorage.getItem(sessionKey);
 
-  if (!session) return next("/login");
+  if (!session) return "/login";
 
   try {
     const user = JSON.parse(session);
     if (user.role !== requiredRole) {
-      if (user.role === "student") return next("/student/dashboard");
-      if (user.role === "sponsor") return next("/sponsor/dashboard");
-      if (user.role === "admin")   return next("/admin/dashboard");
-      return next("/login");
+      if (user.role === "student") return "/student/dashboard";
+      if (user.role === "sponsor") return "/sponsor/dashboard";
+      if (user.role === "admin")   return "/admin/dashboard";
+      return "/login";
     }
-    return next();
+    return true;
   } catch {
     sessionStorage.removeItem(sessionKey);
-    return next("/login");
+    return "/login";
   }
 });
-
 export default router;
