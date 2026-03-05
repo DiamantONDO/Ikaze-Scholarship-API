@@ -1,11 +1,23 @@
 <script setup lang="ts">
-import { RouterView, RouterLink } from "vue-router";
+import { RouterView, RouterLink, useRouter } from "vue-router";
+
+const router = useRouter();
+
+const logout = () => {
+  sessionStorage.removeItem("student_session");
+  router.push("/login");
+};
+
 </script>
 
 <template>
   <div class="layout">
 
     <aside class="sidebar">
+      <RouterLink to="/home" class="logo-link">
+        <h2>IKAZEScholarship</h2>
+      </RouterLink>
+
       <h2 class="logo">Student Panel</h2>
 
       <nav>
@@ -15,7 +27,7 @@ import { RouterView, RouterLink } from "vue-router";
         <RouterLink to="/student/profile">My Profile</RouterLink>
         <RouterLink to="/student/education">University Education</RouterLink>
         <RouterLink to="/student/payments">My Payments</RouterLink>
-        <RouterLink id="logout" to="/login">Logout</RouterLink>
+        <button id="logout" @click="logout">Logout</button>
       </nav>
     </aside>
 
@@ -31,7 +43,6 @@ import { RouterView, RouterLink } from "vue-router";
 .layout {
   display: flex;
   min-height: 100vh;
-  overflow: hidden;
 }
 
 .sidebar {
@@ -74,7 +85,7 @@ a.router-link-active {
   background: #f3f4f6;
   padding: 30px;
   overflow-y: auto;
-  margin-left: 220px;
+  margin-left: 256px;
   margin-top: 0px;
 }
 
@@ -82,5 +93,36 @@ a.router-link-active {
   margin-top: 30px;
   background: #dc2626;
   text-align: left;
+}
+
+.logo-link{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: white;
+  margin-bottom: 30px;
+}
+
+.logo-link h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+button#logout {
+  margin-top: 30px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: large;
+  text-align: left;
+  width: 100%;
+}
+
+button#logout:hover {
+  background: #b91c1c;
 }
 </style>
