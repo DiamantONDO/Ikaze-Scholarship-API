@@ -161,7 +161,6 @@ const register = () => {
   box-shadow: 0 20px 60px rgba(0,0,0,0.2);
 }
 
-/* Header */
 .card-header {
   text-align: center;
   margin-bottom: 32px;
@@ -184,7 +183,6 @@ const register = () => {
   margin: 0;
 }
 
-/* Form */
 .form {
   display: flex;
   flex-direction: column;
@@ -239,7 +237,6 @@ const register = () => {
   padding: 0;
 }
 
-/* Role Selector */
 .role-selector {
   display: flex;
   gap: 12px;
@@ -264,7 +261,7 @@ const register = () => {
 .role-option small { font-size: 11px; color: #6b7280; }
 
 .role-option:hover {
-  border-color: #16a34a;
+  border-color: #08662b;
   background: #f0f7ff;
 }
 
@@ -273,7 +270,6 @@ const register = () => {
   background: #c6fcda;
 }
 
-/* Submit */
 .submit-btn {
   background: #16a34a;
   color: white;
@@ -288,10 +284,9 @@ const register = () => {
 }
 
 .submit-btn:hover {
-  background: #16a34a;
+  background: #08662b;
 }
 
-/* Login link */
 .login-link {
   text-align: center;
   margin-top: 20px;
