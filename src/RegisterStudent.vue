@@ -149,7 +149,7 @@ const register = () => {
             <div class="form-group">
               <label>Phone Number</label>
               <div class="input-wrapper">
-                <input v-model="phone" type="tel" placeholder="Phone Number" required />
+                <input v-model="phone" type="tel" placeholder="Your Phone Number" required />
               </div>
             </div>
 
