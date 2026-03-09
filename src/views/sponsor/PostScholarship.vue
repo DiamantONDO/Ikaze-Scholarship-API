@@ -173,7 +173,7 @@ const submitScholarship = () => {
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  max-width: 640px;
+  max-width: 940px;
   margin-top: 20px;
 }
 
@@ -257,7 +257,7 @@ const submitScholarship = () => {
 
 .req-hint {
   margin-top: 8px;
-  font-size: 12px;
+  font-size: 19px;
   color: #9ca3af;
 }
 
