@@ -104,7 +104,7 @@ const totalTransactions = computed(() => payments.value.length);
             <td>{{ payment.amount.toLocaleString() }}</td>
             <td>{{ new Date(payment.date).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric", 
             hour: "numeric", minute: "numeric"}) }}</td>
-            <td>{{ new Date(payment.month).toLocaleDateString("en-GB") }}</td>
+            <td>{{ new Date(payment.month).toLocaleDateString("en-GB", {month: "long"}) }}</td>
             <td>
               <span :class="['badge', payment.status]">
                 {{ payment.status === "paid" ? "Paid" : "Pending" }}
