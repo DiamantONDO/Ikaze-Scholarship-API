@@ -194,7 +194,7 @@ const sponsorPayments = computed(() =>
             <th>Scholarship</th>
             <th>Month</th>
             <th>Amount (RWF)</th>
-            <th>Date</th>
+            <th>Payment Date</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -203,9 +203,9 @@ const sponsorPayments = computed(() =>
             <tr>
               <td>{{ getStudent(payment.studentId)?.fullName || "Unknown" }}</td>
               <td>{{ getScholarship(payment.scholarshipId)?.title || "Unknown" }}</td>
-              <td>{{ payment.month }}</td>
+              <td>{{ new Date (payment.month).toLocaleDateString("en-GB", {month: "long"}) }}</td>
               <td>{{ payment.amount.toLocaleString() }}</td>
-              <td>{{ new Date(payment.date).toLocaleDateString() }}</td>
+              <td>{{ new Date(payment.date).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) }}</td>
               <td class="paid">{{ payment.status.toUpperCase() }}</td>
             </tr>
           </template>
