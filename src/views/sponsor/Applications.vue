@@ -64,7 +64,7 @@ const getScholarship = (id: number) => scholarships.value.find(s => s.id === id)
       <td>{{ getScholarship(app.scholarshipId)?.title }}</td>
       <td>{{ getStudent(app.studentId)?.fullName || "Unknown" }}</td>
       <td>{{ getStudent(app.studentId)?.email || "Unknown" }}</td>
-      <td>{{ new Date(app.date).toLocaleDateString() }}</td>
+      <td>{{ new Date(app.date).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) }}</td>
       <td :class="app.status">{{ app.status.toUpperCase() }}</td>
     </tr>
   </template>
