@@ -70,32 +70,64 @@ const updateStatus = (status: "Approved" | "Rejected") => {
       </div>
 
       <div class="detail-card full-width">
-        <h2>📎 Submitted Documents</h2>
+        <h2>Submitted Documents</h2>
         <div class="docs-grid">
-          <div class="doc-item">
-            <span class="doc-icon"></span>
-            <div>
-              <p class="doc-label">ID Card / Passport</p>
-              <p class="doc-name">{{ application.details?.idCard }}</p>
-              
-            </div>
-          </div>
-          <div class="doc-item">
-            <span class="doc-icon"></span>
-            <div>
-              <p class="doc-label">Equivalence Document</p>
-              <p class="doc-name">{{ application.details?.equivalence }}</p>
-            </div>
-          </div>
-          <div class="doc-item">
-            <span class="doc-icon"></span>
-            <div>
-              <p class="doc-label">Transcript</p>
-              <p class="doc-name">{{ application.details?.transcript }}</p>
-            </div>
-          </div>
-        </div>
+
+    <div class="doc-item">
+      <div>
+        <p class="doc-label">ID Card / Passport</p>
+        <p class="doc-name">{{ application.details?.idCard?.name || "Not provided" }}</p>
+
+        <a
+        
+          v-if="application.details?.idCard?.data"
+          :href="application.details.idCard.data"
+          target="_blank"
+          class="view-link"
+        >
+          👁 View Document
+        </a>
+        <span v-else class="no-doc">Old Version</span>
       </div>
+    </div>
+
+    <div class="doc-item">
+      <div>
+        <p class="doc-label">Equivalence Document</p>
+        <p class="doc-name">{{ application.details?.equivalence?.name || "Not provided" }}</p>
+        <a
+        
+          v-if="application.details?.equivalence?.data"
+          :href="application.details.equivalence.data"
+          target="_blank"
+          class="view-link"
+        >
+          👁 View Document
+        </a>
+        <span v-else class="no-doc">Old Version</span>
+      </div>
+    </div>
+
+    <div class="doc-item">
+      <div>
+        <p class="doc-label">Transcript</p>
+        <p class="doc-name">{{ application.details?.transcript?.name || "Not provided" }}</p>
+
+        <a
+        
+          v-if="application.details?.transcript?.data"
+          :href="application.details.transcript.data"
+          target="_blank"
+          class="view-link"
+        >
+          👁 View Document
+        </a>
+        <span v-else class="no-doc">Old Version</span>
+      </div>
+    </div>
+
+  </div>
+</div>
 
     </div>
 
@@ -111,10 +143,11 @@ const updateStatus = (status: "Approved" | "Rejected") => {
 
 <style scoped>
 .page {
-  padding: 30px;
+  padding: 36px;
   font-family: Arial, Helvetica, sans-serif;
   color: #1e3a8a;
   max-width: 1200px;
+  padding-top: 0px;
 }
 
 .page-header {
@@ -159,10 +192,11 @@ const updateStatus = (status: "Approved" | "Rejected") => {
   border-radius: 12px;
   padding: 22px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+  font-size: 21px;
 }
 
 .detail-card h2 {
-  font-size: 15px;
+  font-size: 21px;
   margin-bottom: 16px;
   padding-bottom: 8px;
   border-bottom: 2px solid #f0f0f0;
@@ -175,7 +209,7 @@ const updateStatus = (status: "Approved" | "Rejected") => {
   justify-content: space-between;
   padding: 8px 0;
   border-bottom: 1px solid #f9fafb;
-  font-size: 14px;
+  font-size: 21px;
 }
 
 .info-row label { color: #6b7280; }
@@ -198,8 +232,8 @@ const updateStatus = (status: "Approved" | "Rejected") => {
 }
 
 .doc-icon { font-size: 28px; }
-.doc-label { margin: 0; font-size: 12px; color: #6b7280; }
-.doc-name  { margin: 4px 0 0; font-weight: bold; font-size: 13px; color: #1e3a8a; }
+.doc-label { margin: 0; font-size: 21px; color: #6b7280; }
+.doc-name  { margin: 4px 0 0; font-weight: bold; font-size: 21px; color: #1e3a8a; }
 
 .actions {
   display: flex;
@@ -230,5 +264,27 @@ const updateStatus = (status: "Approved" | "Rejected") => {
   padding: 60px;
   text-align: center;
   color: gray;
+}
+
+.view-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #1e3a8a;
+  font-weight: bold;
+  text-decoration: none;
+  background: #e0e7ff;
+  padding: 5px 12px;
+  border-radius: 6px;
+}
+
+.view-link:hover { background: #c7d2fe; }
+
+.no-doc {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+  margin-top: 6px;
+  display: block;
 }
 </style>
