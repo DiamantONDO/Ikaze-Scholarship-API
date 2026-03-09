@@ -93,7 +93,7 @@ const deleteScholarship = (id: number) => {
             <td>{{ getSponsorName(sch.sponsorId) }}</td>
             <td>{{ sch.field }}</td>
             <td>{{ sch.amount.toLocaleString() }}</td>
-            <td>{{ new Date(sch.deadline).toLocaleDateString("en-GB") }}</td>
+            <td>{{ new Date(sch.deadline).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) }}</td>
             <td>
               <span :class="['badge', getStatus(sch.deadline).toLowerCase()]">
                 {{ getStatus(sch.deadline) }}
@@ -117,9 +117,10 @@ const deleteScholarship = (id: number) => {
 
 <style scoped>
 .page {
-  padding: 30px;
+  padding: 36px;
   font-family: Arial, Helvetica, sans-serif;
   color: #1e3a8a;
+  padding-top: 0px;
 }
 
 .page-title {
@@ -169,7 +170,7 @@ table {
 th, td {
   padding: 12px 10px;
   border-bottom: 1px solid #f0f0f0;
-  font-size: 14px;
+  font-size: 16px;
   text-align: left;
 }
 
