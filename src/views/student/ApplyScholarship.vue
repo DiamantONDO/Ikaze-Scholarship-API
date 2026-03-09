@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { getScholarships } from "@/utils/storage";  
 
 const route = useRoute();
 const router = useRouter();
@@ -18,7 +19,7 @@ const equivalenceRef = ref<HTMLInputElement | null>(null);
 const transcriptRef = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
-  const all = JSON.parse(sessionStorage.getItem("scholarships") || "[]");
+  const all = JSON.parse(localStorage.getItem("scholarships") || "[]");
   scholarship.value = all.find((s: any) => s.id === scholarshipId);
 
   // Redirect if already applied
@@ -67,9 +68,9 @@ const submitApplication = async() => {
       fullName: fullName.value,
       age: age.value,
       sex: sex.value,
-      idCard: idCard.name,
-      equivalence: equivalence.name,
-      transcript: transcript.name
+      idCard: {name: idCard.name, data: idCardBase64},
+      equivalence: {name: equivalence.name, data: equivalenceBase64},
+      transcript: {name: transcript.name, data: transcriptBase64},
     }
   };
 
@@ -78,6 +79,7 @@ const submitApplication = async() => {
 
   alert("Application submitted successfully!");
   router.push("/student/scholarships");
+  
 };
 </script>
 
@@ -173,6 +175,7 @@ const submitApplication = async() => {
   padding: 20px 24px;
   border-radius: 12px;
   margin-bottom: 24px;
+  font-size: 21px;
 }
 
 .banner h2 { margin: 0 0 4px; }
@@ -182,7 +185,7 @@ const submitApplication = async() => {
   background: rgba(255,255,255,0.15);
   padding: 6px 14px;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 21px;
 }
 
 h1 { margin-bottom: 20px; }
@@ -268,5 +271,6 @@ h1 { margin-bottom: 20px; }
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
+  font-size: 15px;
 }
 </style>
