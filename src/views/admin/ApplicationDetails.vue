@@ -32,6 +32,13 @@ const updateStatus = (status: "Approved" | "Rejected") => {
   localStorage.setItem("applications", JSON.stringify(apps));
   application.value.status = status;
 };
+
+const activeDoc = ref<string | null>(null);
+
+const openDocument = (data: string) => {
+  activeDoc.value = data;
+
+}
 </script>
 
 <template>
@@ -70,64 +77,58 @@ const updateStatus = (status: "Approved" | "Rejected") => {
       </div>
 
       <div class="detail-card full-width">
-        <h2>Submitted Documents</h2>
+        <h2>📎 Submitted Documents</h2>
         <div class="docs-grid">
+          <div class="doc-item">
+            <div>
+              <p class="doc-label">ID Card / Passport</p>
+              <p class="doc-name">{{ application.details?.idCard?.name || "Not provided" }}</p>
+              <button v-if="application.details?.idCard?.data" class="view-link" @click="openDocument(application.details.idCard.data)">
+                👁 View Document
+              </button>
+              <span v-else class="no-doc">Old Version</span>
+            </div>
+          </div>
 
-    <div class="doc-item">
-      <div>
-        <p class="doc-label">ID Card / Passport</p>
-        <p class="doc-name">{{ application.details?.idCard?.name || "Not provided" }}</p>
+          <div class="doc-item">
+            <div>
+              <p class="doc-label">Equivalence Document</p>
+              <p class="doc-name">{{ application.details?.equivalence?.name || "Not provided" }}</p>
+              <button v-if="application.details?.equivalence?.data" class="view-link" @click="openDocument(application.details.equivalence.data)">
+                👁 View Document
+              </button>
+              <span v-else class="no-doc">Old Version</span>
+            </div>
+          </div>
 
-        <a
-        
-          v-if="application.details?.idCard?.data"
-          :href="application.details.idCard.data"
-          target="_blank"
-          class="view-link"
-        >
-          👁 View Document
-        </a>
-        <span v-else class="no-doc">Old Version</span>
+          <div class="doc-item">
+            <div>
+              <p class="doc-label">Transcript</p>
+              <p class="doc-name">{{ application.details?.transcript?.name || "Not provided" }}</p>
+              <button v-if="application.details?.transcript?.data" class="view-link" @click="openDocument(application.details.transcript.data)">
+                👁 View Document
+              </button>
+              <span v-else class="no-doc">Old Version</span>
+            </div>
+          </div>
+
+        </div>
       </div>
-    </div>
 
-    <div class="doc-item">
-      <div>
-        <p class="doc-label">Equivalence Document</p>
-        <p class="doc-name">{{ application.details?.equivalence?.name || "Not provided" }}</p>
-        <a
-        
-          v-if="application.details?.equivalence?.data"
-          :href="application.details.equivalence.data"
-          target="_blank"
-          class="view-link"
-        >
-          👁 View Document
-        </a>
-        <span v-else class="no-doc">Old Version</span>
+      <div class="modal-overlay" v-if="activeDoc" @click.self="activeDoc = null">
+        <div class="modal-box">
+          <div class="modal-header">
+            <h3>Document Preview</h3>
+            <button class="close-btn" @click="activeDoc = null">✕ Close</button>
+          </div>
+          <div class="modal-body">
+            <!--For images -->
+            <img v-if="activeDoc.startsWith('data:image')" :src="activeDoc" class="doc-preview-img" />
+            <!--For PDFs-->
+            <iframe v-else :src="activeDoc" class="doc-preview-pdf"></iframe>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <div class="doc-item">
-      <div>
-        <p class="doc-label">Transcript</p>
-        <p class="doc-name">{{ application.details?.transcript?.name || "Not provided" }}</p>
-
-        <a
-        
-          v-if="application.details?.transcript?.data"
-          :href="application.details.transcript.data"
-          target="_blank"
-          class="view-link"
-        >
-          👁 View Document
-        </a>
-        <span v-else class="no-doc">Old Version</span>
-      </div>
-    </div>
-
-  </div>
-</div>
 
     </div>
 
@@ -182,9 +183,12 @@ const updateStatus = (status: "Approved" | "Rejected") => {
 
 .grid-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 4fr 4fr;
   gap: 20px;
   margin-bottom: 24px;
+  max-width: 95%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .detail-card {
@@ -286,5 +290,73 @@ const updateStatus = (status: "Approved" | "Rejected") => {
   font-style: italic;
   margin-top: 6px;
   display: block;
+}
+
+/**openDocument */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-box {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1000px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #1e3a8a;
+  color: white;
+}
+
+.modal-header h3 { margin: 0; font-size: 16px; }
+
+.close-btn {
+  background: #dc2626;
+  border: none;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.close-btn:hover { background: #e95858 }
+
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.doc-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 20px;
+}
+
+.doc-preview-pdf {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 </style>
