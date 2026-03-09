@@ -109,9 +109,10 @@ const toggleStatus = (student: Student) => {
 
 <style scoped>
 .page {
-  padding: 30px;
+  padding: 36px;
   font-family: Arial, Helvetica, sans-serif;
   color: #1e3a8a;
+  padding-top: 0px;
 }
 
 .page-title {
@@ -164,7 +165,7 @@ table {
 th, td {
   padding: 12px 10px;
   border-bottom: 1px solid #f0f0f0;
-  font-size: 14px;
+  font-size: 16px;
   text-align: left;
 }
 
