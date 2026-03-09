@@ -125,7 +125,7 @@ const recentApplications = computed(() =>
             <td>{{ index + 1 }}</td>
             <td>{{ getStudentName(app.studentId) }}</td>
             <td>{{ getScholarshipTitle(app.scholarshipId) }}</td>
-            <td>{{ app.date ? new Date(app.date).toLocaleDateString("en-GB") : "—" }}</td>
+            <td>{{ app.date ? new Date(app.date).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) : "—" }}</td>
             <td>
               <span :class="['badge', app.status.toLowerCase()]">
                 {{ app.status }}
@@ -145,7 +145,7 @@ const recentApplications = computed(() =>
 
 <style scoped>
 .dashboard {
-  padding: 30px;
+  padding: 36px;
   font-family: Arial, Helvetica, sans-serif;
   color: #1e3a8a;
   padding-top: 0px;
@@ -178,7 +178,7 @@ const recentApplications = computed(() =>
 
 .card h3 {
   margin: 0 0 6px;
-  font-size: 13px;
+  font-size: 22px;
   opacity: 0.85;
 }
 
@@ -210,8 +210,8 @@ const recentApplications = computed(() =>
   font-size: 14px;
 }
 
-.mini-label { color: #374151; height: 42px;}
-.mini-value { font-size: 22px; font-weight: bold; height: 42px;}
+.mini-label { color: #374151; height: 42px; font-size: 18px;}
+.mini-value { font-size: 30px; font-weight: bold; height: 42px;}
 .orange-text { color: #f97316; }
 .green-text  { color: #16a34a; }
 .red-text    { color: #dc2626; }
@@ -242,7 +242,7 @@ th, td {
   padding: 12px 10px;
   text-align: left;
   border-bottom: 1px solid #f0f0f0;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 th {
@@ -257,7 +257,7 @@ th {
   font-weight: bold;
 }
 
-.badge.pending  { background: #fff7ed; color: #c2410c; }
+.badge.pending  { background: #fff7ed; color: #dc2626; }
 .badge.approved { background: #dcfce7; color: #15803d; }
 .badge.rejected { background: #fee2e2; color: #b91c1c; }
 
