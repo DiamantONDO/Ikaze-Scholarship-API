@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { getScholarships, getPayments, getApplications } from "@/utils/storage";
 
 interface Scholarship {
   id: number;
@@ -148,7 +149,7 @@ const recentScholarships = computed(() =>
             <td>{{ scholarship.title }}</td>
             <td>{{ scholarship.field }}</td>
             <td>{{ scholarship.amount.toLocaleString() }}</td>
-            <td>{{ new Date(scholarship.deadline).toLocaleDateString("en-GB") }}</td>
+            <td>{{ new Date(scholarship.deadline).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) }}</td>
             <td>
               <span :class="['badge', getStatus(scholarship.deadline).toLowerCase()]">
                 {{ getStatus(scholarship.deadline) }}
