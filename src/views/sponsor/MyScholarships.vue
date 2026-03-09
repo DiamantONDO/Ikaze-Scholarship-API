@@ -66,7 +66,7 @@ const viewApplications = (id: number) => {
           <td>{{ sch.title }}</td>
           <td>{{ sch.field }}</td>
           <td>{{ sch.amount.toLocaleString() }}</td>
-          <td>{{ new Date(sch.deadline).toLocaleDateString() }}</td>
+          <td>{{ new Date(sch.deadline).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) }}</td>
           <td :class="sch.status">{{ sch.status.toUpperCase() }}</td>
           <td class="actions">
             <button @click="editScholarship(sch.id)">Edit</button>
