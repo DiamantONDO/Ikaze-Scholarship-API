@@ -225,7 +225,7 @@ const register = () => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background-image: url("public/ALU.jpg");
+  background-image: url("/ALU.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
