@@ -187,7 +187,7 @@
 
 .hero {
   min-height: 88vh;
-  background-image: url('public/Riviera.jpg');
+  background-image: url('/Riviera.jpg');
   background-size: cover;
   background-position: center;
   display: flex;
@@ -303,7 +303,7 @@
   padding: 80px 60px;
   text-align: center;
   background: #f9fafb;
-  background-image: url("public/image4.jpg");
+  background-image: url("/image4.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
