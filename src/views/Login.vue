@@ -103,7 +103,7 @@ const login = async () => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background-image: url("public/Riviera.jpg");
+  background-image: url("/Riviera.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
