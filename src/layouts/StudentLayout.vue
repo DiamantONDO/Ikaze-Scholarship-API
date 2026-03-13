@@ -25,7 +25,6 @@ const logout = () => {
         <RouterLink to="/student/scholarships">Scholarships</RouterLink>
         <RouterLink to="/student/applications">My Applications</RouterLink>
         <RouterLink to="/student/profile">My Profile</RouterLink>
-        <RouterLink to="/student/education">University Education</RouterLink>
         <RouterLink to="/student/payments">My Payments</RouterLink>
         <button id="logout" @click="logout">Logout</button>
       </nav>
