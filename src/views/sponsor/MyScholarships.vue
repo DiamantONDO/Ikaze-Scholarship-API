@@ -36,11 +36,6 @@ const deleteScholarship = (id: number) => {
   fetchScholarships();
 };
 
-//Implement real edit(All 7 fields) later
-const editScholarship = (id: number) => {
-  router.push({ path: "/sponsor/scholarships", query: { id } });
-};
-
 const viewApplications = (id: number) => {
   router.push({ path: "/sponsor/applications", query: { scholarshipId: id } });
 };
@@ -69,7 +64,6 @@ const viewApplications = (id: number) => {
           <td>{{ new Date(sch.deadline).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) }}</td>
           <td :class="sch.status">{{ sch.status.toUpperCase() }}</td>
           <td class="actions">
-            <button @click="editScholarship(sch.id)">Edit</button>
             <button @click="deleteScholarship(sch.id)">Delete</button>
             <button @click="viewApplications(sch.id)">Applications</button>
           </td>
