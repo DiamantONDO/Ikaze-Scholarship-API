@@ -1,29 +1,26 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { supabase } from "@/utils/supabase";
 
-const student = ref({
-  fullName: "",
-  age: "",
-  sex: "",
-  idCard: "",
-  equivalence: "",
-  transcript: "",
-  email: "",
-  phone: "",
-  high_school: "",
-  field: "",
-  year: "",
-  fatherName: "",
-  fatherPhone: "",
-  motherName: "",
-  motherPhone: ""
-});
+const student = ref<any>({});
 
-onMounted(() => {
-  const loggedIn = JSON.parse(sessionStorage.getItem("student_session") || "null");
-  if (loggedIn) {
-    student.value = { ...student.value, ...loggedIn };
-  }
+onMounted(async () => {
+  const session = JSON.parse(sessionStorage.getItem("student_session") || "null");
+  if (!session) return;
+
+  const { data: userData } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", session.id)
+    .single();
+
+  const { data: profileData } = await supabase
+    .from("student_profiles")
+    .select("*")
+    .eq("id", session.id)
+    .single();
+
+  student.value = { ...userData, ...profileData };
 });
 </script>
 
@@ -34,7 +31,7 @@ onMounted(() => {
     <div class="card">
       <h2>Personal Information</h2>
       <div class="grid">
-        <div><label>Full Name</label><p>{{ student.fullName }}</p></div>
+        <div><label>Full Name</label><p>{{ student.full_name }}</p></div>
         <div><label>Sex</label><p>{{ student.sex }}</p></div>
         <div><label>Age</label><p>{{ student.age }}</p></div>
         <div><label>Email</label><p>{{ student.email }}</p></div>
@@ -48,14 +45,12 @@ onMounted(() => {
     <div class="card">
       <h2>Parents Information</h2>
       <div class="grid">
-        <div><label>Father's Name</label><p>{{ student.fatherName }}</p></div>
-        <div><label>Father's Phone</label><p>{{ student.fatherPhone }}</p></div>
-        <div><label>Mother's Name</label><p>{{ student.motherName }}</p></div>
-        <div><label>Mother's Phone</label><p>{{ student.motherPhone }}</p></div>
+        <div><label>Father's Name</label><p>{{ student.father_name }}</p></div>
+        <div><label>Father's Phone</label><p>{{ student.father_phone }}</p></div>
+        <div><label>Mother's Name</label><p>{{ student.mother_name }}</p></div>
+        <div><label>Mother's Phone</label><p>{{ student.mother_phone }}</p></div>
       </div>
     </div>
-
-    <button class="edit-btn">Edit Profile</button>
   </div>
 </template>
 

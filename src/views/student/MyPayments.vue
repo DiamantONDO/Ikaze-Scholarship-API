@@ -1,71 +1,60 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { supabase } from "@/utils/supabase";
 
 const student = JSON.parse(sessionStorage.getItem("student_session") || "null");
 
-interface Payment {
-  id: number;
-  sponsorId: number;
-  studentId: number;
-  scholarshipId: number;
-  month: string;
-  amount: number;
-  status: "paid" | "pending";
-  date: string;
-}
+const payments = ref<any[]>([]);
+const scholarships = ref<any[]>([]);
+const sponsors = ref<any[]>([]);
 
-interface Scholarship {
-  id: number;
-  title: string;
-  amount: number;
-  field: string;
-}
+onMounted(async () => {
+  const { data: paymentData } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("student_id", student?.id);
 
-interface Sponsor {
-  id: number;
-  fullName: string;
-}
+  payments.value = paymentData || [];
 
-const payments = ref<Payment[]>([]);
-const scholarships = ref<Scholarship[]>([]);
-const sponsors = ref<Sponsor[]>([]);
+  const scholarshipIds = [...new Set(payments.value.map(p => p.scholarship_id))];
+  if (scholarshipIds.length > 0) {
+    const { data: scholarshipData } = await supabase
+      .from("scholarships")
+      .select("id, title, field, amount")
+      .in("id", scholarshipIds);
+    scholarships.value = scholarshipData || [];
+  }
 
-onMounted(() => {
-  const allPayments: Payment[] = JSON.parse(localStorage.getItem("payments") || "[]");
-  payments.value = allPayments.filter(p => p.studentId === student?.id);
-
-  scholarships.value = JSON.parse(localStorage.getItem("scholarships") || "[]");
-
-  const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
-  sponsors.value = allUsers.filter((u: any) => u.role === "sponsor");
+  const sponsorIds = [...new Set(payments.value.map(p => p.sponsor_id))];
+  if (sponsorIds.length > 0) {
+    const { data: sponsorData } = await supabase
+      .from("users")
+      .select("id, full_name")
+      .in("id", sponsorIds);
+    sponsors.value = sponsorData || [];
+  }
 });
 
 const getScholarship = (id: number) => scholarships.value.find(s => s.id === id);
 const getSponsor = (id: number) => sponsors.value.find(s => s.id === id);
 
 const totalReceived = computed(() =>
-  payments.value
-    .filter(p => p.status === "paid")
-    .reduce((sum, p) => sum + p.amount, 0)
+  payments.value.filter(p => p.status === "paid").reduce((sum, p) => sum + p.amount, 0)
 );
-
 const totalPaid = computed(() => payments.value.filter(p => p.status === "paid").length);
 const totalPending = computed(() => payments.value.filter(p => p.status === "pending").length);
 
-// Group payments by scholarship
 const groupedPayments = computed(() => {
-  const groups: Record<number, { scholarship: Scholarship | undefined; payments: Payment[] }> = {};
-
+  const groups: Record<number, { scholarship: any; payments: any[] }> = {};
   payments.value.forEach(p => {
-    if (!groups[p.scholarshipId]) {
-      groups[p.scholarshipId] = {
-        scholarship: getScholarship(p.scholarshipId),
-        payments: []
+    if (!groups[p.scholarship_id]) {
+      groups[p.scholarship_id] = {
+        scholarship: getScholarship(p.scholarship_id),
+        payments: [],
       };
     }
-    groups[p.scholarshipId]!.payments.push(p);
+    groups[p.scholarship_id]!.payments.push(p);
   });
-
   return Object.values(groups);
 });
 </script>
@@ -76,23 +65,18 @@ const groupedPayments = computed(() => {
 
     <div class="stats-row">
       <div class="stat-card green">
-        <div class="stat-icon"></div>
         <div>
           <p class="stat-label">Total Received</p>
           <p class="stat-value">{{ totalReceived.toLocaleString() }} RWF</p>
         </div>
       </div>
-
       <div class="stat-card blue">
-        <div class="stat-icon"></div>
         <div>
           <p class="stat-label">Payments Done</p>
           <p class="stat-value">{{ totalPaid }}</p>
         </div>
       </div>
-
       <div class="stat-card orange">
-        <div class="stat-icon"></div>
         <div>
           <p class="stat-label">Pending Payments</p>
           <p class="stat-value">{{ totalPending }}</p>
@@ -100,24 +84,18 @@ const groupedPayments = computed(() => {
       </div>
     </div>
 
-    <!-- No payments state -->
     <div v-if="payments.length === 0" class="empty-state">
       <p>No payments recorded yet.</p>
     </div>
 
-    <!-- Grouped by Scholarship -->
-    <div
-      v-for="group in groupedPayments"
-      :key="group.scholarship?.id"
-      class="group-card"
-    >
+    <div v-for="group in groupedPayments" :key="group.scholarship?.id" class="group-card">
       <div class="group-header">
         <div>
           <h2>{{ group.scholarship?.title || "Unknown Scholarship" }}</h2>
           <span class="field-badge">{{ group.scholarship?.field }}</span>
         </div>
         <div class="group-meta">
-          <span> {{ group.scholarship?.amount.toLocaleString() }} RWF / month</span>
+          <span>{{ group.scholarship?.amount?.toLocaleString() }} RWF / month</span>
         </div>
       </div>
 
@@ -134,10 +112,8 @@ const groupedPayments = computed(() => {
         <tbody>
           <tr v-for="(payment, index) in group.payments" :key="payment.id">
             <td>{{ index + 1 }}</td>
-            <td>{{ getSponsor(payment.sponsorId)?.fullName || "Unknown" }}</td>
-            <td>{{ new Date(payment.month).toLocaleDateString("en-GB", {
-              day: "2-digit", month: "long", year: "numeric"
-            }) }}</td>
+            <td>{{ getSponsor(payment.sponsor_id)?.full_name || "Unknown" }}</td>
+            <td>{{ new Date(payment.month).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) }}</td>
             <td>{{ payment.amount.toLocaleString() }}</td>
             <td>
               <span :class="['badge', payment.status]">
@@ -146,18 +122,11 @@ const groupedPayments = computed(() => {
             </td>
           </tr>
         </tbody>
-
-        <!-- Per-scholarship subtotal -->
         <tfoot>
           <tr class="subtotal-row">
             <td colspan="3">Subtotal Received</td>
             <td colspan="2">
-              {{
-                group.payments
-                  .filter(p => p.status === "paid")
-                  .reduce((sum, p) => sum + p.amount, 0)
-                  .toLocaleString()
-              }} RWF
+              {{ group.payments.filter(p => p.status === "paid").reduce((sum, p) => sum + p.amount, 0).toLocaleString() }} RWF
             </td>
           </tr>
         </tfoot>

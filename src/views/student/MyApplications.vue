@@ -1,39 +1,44 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { supabase } from "@/utils/supabase";
 
 const student = JSON.parse(sessionStorage.getItem("student_session") || "null");
-
 const applications = ref<any[]>([]);
 
-onMounted(() => {
-  if (!student) {
-    console.error("No logged-in student found.");
-    return;
-  }
+onMounted(async () => {
+  if (!student) return;
 
-  const storedApps = JSON.parse(localStorage.getItem("applications") || "[]");
-  const storedScholarships = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  const storedSponsors = JSON.parse(localStorage.getItem("users") || "[]")
-  .filter((user: any) => user.role === "sponsor");
+  const { data: appData } = await supabase
+    .from("applications")
+    .select("*")
+    .eq("student_id", student.id);
 
-  applications.value = storedApps
-    .filter((app: any) => app.studentId === student.id)
-    .map((app: any) => {
-      const scholarship = storedScholarships.find(
-        (s: any) => s.id === app.scholarshipId
-      );
+  if (!appData) return;
 
-      const sponsor = storedSponsors.find(
-        (sp: any) => sp.id === scholarship?.sponsorId
-      );
+  const scholarshipIds = appData.map(a => a.scholarship_id);
 
-      return {
-        id: app.id,
-        title: scholarship?.title || "Unknown",
-        sponsor: sponsor?.fullName || "Unknown",
-        status: app.status
-      };
-    });
+  const { data: scholarshipData } = await supabase
+    .from("scholarships")
+    .select("id, title, sponsor_id")
+    .in("id", scholarshipIds);
+
+  const sponsorIds = [...new Set((scholarshipData || []).map(s => s.sponsor_id))];
+
+  const { data: sponsorData } = await supabase
+    .from("users")
+    .select("id, full_name")
+    .in("id", sponsorIds);
+
+  applications.value = appData.map(app => {
+    const scholarship = (scholarshipData || []).find(s => s.id === app.scholarship_id);
+    const sponsor = (sponsorData || []).find(s => s.id === scholarship?.sponsor_id);
+    return {
+      id: app.id,
+      title: scholarship?.title || "Unknown",
+      sponsor: sponsor?.full_name || "Unknown",
+      status: app.status,
+    };
+  });
 });
 
 const statusColor = (status: string) => {
@@ -49,7 +54,6 @@ const statusColor = (status: string) => {
     <div v-if="applications.length === 0" class="no-apps">
       You have not applied to any scholarships yet.
     </div>
-
     <table v-else class="applications-table">
       <thead>
         <tr>
@@ -59,11 +63,11 @@ const statusColor = (status: string) => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="app in applications" :key="app.scholarship_id">
+        <tr v-for="app in applications" :key="app.id">
           <td>{{ app.title }}</td>
           <td>{{ app.sponsor }}</td>
           <td>
-            <span class="status-badge" :style="{ backgroundColor: statusColor(app.status) }" :title="app.status">
+            <span class="status-badge" :style="{ backgroundColor: statusColor(app.status) }">
               {{ app.status }}
             </span>
           </td>

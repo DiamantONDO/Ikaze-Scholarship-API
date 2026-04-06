@@ -1,74 +1,81 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
+import { supabase } from "@/utils/supabase";
 
 const router = useRouter();
+
 const student = JSON.parse(sessionStorage.getItem("student_session") || "{}");
-const users = ref<any[]>([]);
 
-const scholarships = ref<any[]>([]);
+const allScholarships = ref<any[]>([]);
+const sponsors = ref<any[]>([]);
 const applications = ref<any[]>([]);
-
-onMounted(() => {
-  scholarships.value = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  applications.value = JSON.parse(localStorage.getItem("applications") || "[]");
-    users.value = JSON.parse(localStorage.getItem("users") || "[]");
-
-});
-
-const getSponsorName = (sponsorId: number) => {
-  const sponsor = users.value.find((u) => u.id === sponsorId);
-  return sponsor ? sponsor.fullName : "Unknown Sponsor";
-}
-
-const hasApplied = (scholarshipId: number) => {
-  return applications.value.some(
-    (app) => app.studentId === student.id && app.scholarshipId === scholarshipId
-  );
-};
-
-// Go to /student/scholarships/:id
-const goToApply = (scholarshipId: number) => {
-  router.push(`/student/scholarships/${scholarshipId}`);
-};
-
-const availableFields = computed(() => {
-  const fields = scholarships.value.map(s => s.field).filter(Boolean);
-  return [...new Set(fields)];
-});
-
 const searchQuery = ref("");
 const selectedField = ref("");
 
-const filteredScholarships = computed(() => {
-  return scholarships.value.filter(sch => {
-    const query = searchQuery.value.toLowerCase();
+onMounted(async () => {
+  const { data: scholarshipData } = await supabase
+    .from("scholarships")
+    .select("*")
+    .eq("status", "active")
+    .order("created_at", { ascending: false });
 
-    const matchesSearch = !query || [
-      sch.title,
-      sch.field,
-      sch.description,
-      getSponsorName(sch.sponsorId)
-    ].some(val => val?.toLowerCase().includes(query));
+  allScholarships.value = scholarshipData || [];
 
-    const matchesField = !selectedField.value || sch.field === selectedField.value;
+  const { data: sponsorData } = await supabase
+    .from("users")
+    .select("id, full_name")
+    .eq("role", "sponsor");
 
-    return matchesSearch && matchesField;
-  });
+  sponsors.value = sponsorData || [];
+
+  const { data: appData } = await supabase
+    .from("applications")
+    .select("scholarship_id")
+    .eq("student_id", student.id);
+
+  applications.value = appData || [];
 });
+
+const getSponsorName = (sponsorId: number) => {
+  const sponsor = sponsors.value.find(s => s.id === sponsorId);
+  return sponsor ? sponsor.full_name : "Unknown";
+};
+
+const hasApplied = (scholarshipId: number) => {
+  return applications.value.some(a => Number(a.scholarship_id) === Number(scholarshipId));
+};
+const goToApply = (scholarshipId: number) => {
+  router.push({ path: "/student/apply", query: { scholarshipId } });
+};
 
 const clearFilters = () => {
   searchQuery.value = "";
   selectedField.value = "";
 };
 
+const availableFields = computed(() => {
+  const unique = new Set(allScholarships.value.map(s => s.field));
+  return Array.from(unique);
+});
+
+
+const filteredScholarships = computed(() => {
+  return allScholarships.value.filter(s => {
+    const matchesSearch =
+      s.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      s.field.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      getSponsorName(s.sponsor_id).toLowerCase().includes(searchQuery.value.toLowerCase());
+    const matchesField = selectedField.value ? s.field === selectedField.value : true;
+    return matchesSearch && matchesField;
+  });
+});
 </script>
 
 <template>
   <div class="page">
     <h1>Posted Scholarships</h1>
 
-    <!--Search and Filter Bar-->
     <div class="search-bar">
       <div class="search-input-wrapper">
         <span class="search-icon"></span>
@@ -97,13 +104,11 @@ const clearFilters = () => {
       </button>
     </div>
     
-    <!--Filter active but no matches -->
     <div v-if="filteredScholarships.length === 0" class="no-sch">
-      <span v-if="scholarships.length === 0">There are no posted scholarships yet.</span>
+      <span v-if="allScholarships.length === 0">There are no posted scholarships yet.</span>
       <span v-else>No scholarships match your search.</span>
     </div>
 
-    <!--Filter active with matches -->
     <template v-else>
       <p class="results-count" v-if="searchQuery || selectedField">
         {{ filteredScholarships.length }} result(s) found
@@ -112,7 +117,7 @@ const clearFilters = () => {
       <div class="scholarships-grid">
         <div class="card" v-for="sch in filteredScholarships" :key="sch.id">
           <div class="card-header">
-            <h3>{{ getSponsorName(sch.sponsorId) }}</h3>
+            <h3>{{ getSponsorName(sch.sponsor_id) }}</h3>
             <span :class="['status-badge', sch.status]">{{ sch.status.toUpperCase() }}</span>
           </div>
           <p><strong>Scholarship:</strong> {{ sch.title }}</p>

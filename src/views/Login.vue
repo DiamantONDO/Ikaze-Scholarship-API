@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { supabase } from "@/utils/supabase";
 import { ref, nextTick } from "vue";
 import { useRouter } from "vue-router";
 
@@ -12,25 +13,36 @@ const errorMessage = ref("");
 const login = async () => {
   errorMessage.value = "";
 
-  const users = JSON.parse(localStorage.getItem("users") || "[]");
+ const {data, error } = await supabase.from("users").select("*")
+ .eq("email", email.value)
+ .eq("password", password.value)
+ .single();
 
-  const user = users.find(
-    (u: any) => u.email === email.value && u.password === password.value
-  );
-
-  if (!user) {
+  if (error || !data) {
     errorMessage.value = "Invalid email or password. Please try again.";
     return;
   }
 
-  if (user.role === "student") {
-    sessionStorage.setItem("student_session", JSON.stringify(user));
+
+
+
+  if (data.role === "student") {
+    const { data: profile } = await supabase.from("student_profiles")
+    .select("*")
+    .eq("id", data.id)
+    .single();
+
+    const studentSession = {
+      ...data, ...profile };
+    sessionStorage.setItem("student_session", JSON.stringify(studentSession));
     router.push("/student/dashboard");
-  } else if (user.role === "sponsor") {
-    sessionStorage.setItem("sponsor_session", JSON.stringify(user));
+
+  } else if (data.role === "sponsor") {
+    sessionStorage.setItem("sponsor_session", JSON.stringify(data));
     router.push("/sponsor/dashboard");
-  } else if (user.role === "admin") {
-    sessionStorage.setItem("admin_session", JSON.stringify(user));
+    
+  } else if (data.role === "admin") {
+    sessionStorage.setItem("admin_session", JSON.stringify(data));
     router.push("/admin/dashboard");
   }
 };
