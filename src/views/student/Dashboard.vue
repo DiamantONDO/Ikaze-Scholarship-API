@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { supabase } from "@/utils/supabase";
 
 const student = JSON.parse(sessionStorage.getItem("student_session") || "null");
 
@@ -7,48 +8,53 @@ const scholarships = ref<any[]>([]);
 const applications = ref<any[]>([]);
 const payments = ref<any[]>([]);
 
-onMounted(() => {
-  scholarships.value = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  applications.value = JSON.parse(localStorage.getItem("applications") || "[]");
-  payments.value = JSON.parse(localStorage.getItem("payments") || "[]");
+onMounted(async () => {
+  const { data: scholarshipData } = await supabase
+    .from("scholarships")
+    .select("*")
+    .eq("status", "active");
+  scholarships.value = scholarshipData || [];
+
+  const { data: appData } = await supabase
+    .from("applications")
+    .select("*")
+    .eq("student_id", student?.id);
+  applications.value = appData || [];
+
+  const { data: paymentData } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("student_id", student?.id);
+  payments.value = paymentData || [];
 });
 
-const totalScholarships = computed(() =>
-  scholarships.value.filter(s => s.status === "active").length
-);
+const totalScholarships = computed(() => scholarships.value.length);
 
-const myApplications = computed(() =>
-  applications.value.filter(a => Number(a.studentId) === Number(student?.id))
-);
-
-const totalApplications = computed(() => myApplications.value.length);
+const totalApplications = computed(() => applications.value.length);
 
 const approvedApplications = computed(() =>
-  myApplications.value.filter(a => a.status === "Approved").length
+  applications.value.filter(a => a.status === "Approved").length
 );
 
 const pendingApplications = computed(() =>
-  myApplications.value.filter(a => a.status === "Pending").length
+  applications.value.filter(a => a.status === "Pending").length
 );
 
-const myPayments = computed(() =>
-  payments.value.filter(p => Number(p.studentId) === Number(student?.id))
+const paidPayments = computed(() =>
+  payments.value.filter(p => p.status === "paid")
 );
 
 const totalPayments = computed(() =>
-  myPayments.value
-    .filter(p => p.status === "paid")//in lower case
-    .reduce((sum, p) => sum + p.amount, 0)
+  paidPayments.value.reduce((sum, p) => sum + p.amount, 0)
 );
 
-const paymentsCount = computed(() =>
-  myPayments.value.filter(p => p.status === "paid").length
-);
+const paymentsCount = computed(() => paidPayments.value.length);
 
 const lastPayment = computed(() => {
-  const paid = myPayments.value.filter(p => p.status === "paid");
-  if (paid.length === 0) return null;
-  return paid.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+  if (paidPayments.value.length === 0) return null;
+  return [...paidPayments.value].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )[0];
 });
 
 const getScholarshipTitle = (id: number) => {
@@ -63,8 +69,8 @@ const getScholarshipTitle = (id: number) => {
 
     <div class="welcome-banner">
       <div>
-        <h2>Welcome back, {{ student?.fullName }}</h2>
-        <p>{{ student?.high_school }} — {{ student?.field }}, {{ student?.year }}</p>
+        <h2>Welcome back, {{ student?.full_name }}</h2>
+        <p>{{ student?.high_school }} — {{ student?.field }}, Year {{ student?.year }}</p>
       </div>
     </div>
 
@@ -111,7 +117,7 @@ const getScholarshipTitle = (id: number) => {
       <div class="last-payment-row">
         <div>
           <p class="lp-label">Scholarship</p>
-          <p class="lp-value">{{ getScholarshipTitle(lastPayment.scholarshipId) }}</p>
+          <p class="lp-value">{{ getScholarshipTitle(lastPayment.scholarship_id) }}</p>
         </div>
         <div>
           <p class="lp-label">Amount</p>
@@ -119,8 +125,7 @@ const getScholarshipTitle = (id: number) => {
         </div>
         <div>
           <p class="lp-label">Date</p>
-          <!--Because I have used "month" for date onn sponsor side -->
-          <p class="lp-value">{{ new Date(lastPayment.month).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) }}</p>
+          <p class="lp-value">{{ new Date(lastPayment.month).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) }}</p>
         </div>
         <div>
           <p class="lp-label">Status</p>
