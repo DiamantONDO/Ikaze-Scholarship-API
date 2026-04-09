@@ -1,29 +1,30 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { supabase } from "@/utils/supabase";
 
-interface Scholarship {
-  id: number;
-  sponsorId: number;
-  title: string;
-  field: string;
-  amount: number;
-  deadline: string;
-  status: "active" | "inactive";
-}
+const scholarships = ref<any[]>([]);
+const sponsors = ref<any[]>([]);
 
-const scholarships = ref<Scholarship[]>([]);
-const users = ref<any[]>([]);
+onMounted(async () => {
+  const { data: schData } = await supabase
+    .from("scholarships")
+    .select("*")
+    .order("created_at", { ascending: false });
+  scholarships.value = schData || [];
 
-const fetchData = () => {
-  scholarships.value = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  users.value = JSON.parse(localStorage.getItem("users") || "[]");
-};
-
-onMounted(fetchData);
+  const sponsorIds = [...new Set(scholarships.value.map(s => s.sponsor_id))];
+  if (sponsorIds.length > 0) {
+    const { data: sponsorData } = await supabase
+      .from("users")
+      .select("id, full_name")
+      .in("id", sponsorIds);
+    sponsors.value = sponsorData || [];
+  }
+});
 
 const getSponsorName = (sponsorId: number) => {
-  const sponsor = users.value.find(u => u.id === sponsorId);
-  return sponsor ? sponsor.fullName : "Unknown";
+  const sponsor = sponsors.value.find(u => u.id === sponsorId);
+  return sponsor ? sponsor.full_name : "Unknown";
 };
 
 const getStatus = (deadline: string) =>
@@ -36,10 +37,11 @@ const totalClosed = computed(() =>
   scholarships.value.filter(s => s.status === "inactive").length
 );
 
-const deleteScholarship = (id: number) => {
+const deleteScholarship = async (id: number) => {
   if (!confirm("Are you sure you want to delete this scholarship?")) return;
+  const { error } = await supabase.from("scholarships").delete().eq("id", id);
+  if (error) { console.error(error.message); return; }
   scholarships.value = scholarships.value.filter(s => s.id !== id);
-  localStorage.setItem("scholarships", JSON.stringify(scholarships.value));
 };
 </script>
 
@@ -49,25 +51,13 @@ const deleteScholarship = (id: number) => {
 
     <div class="stats-row">
       <div class="stat-card navy">
-        <div class="stat-icon"></div>
-        <div>
-          <p class="stat-label">Total Scholarships</p>
-          <p class="stat-value">{{ scholarships.length }}</p>
-        </div>
+        <div><p class="stat-label">Total Scholarships</p><p class="stat-value">{{ scholarships.length }}</p></div>
       </div>
       <div class="stat-card green">
-        <div class="stat-icon"></div>
-        <div>
-          <p class="stat-label">Active</p>
-          <p class="stat-value">{{ totalActive }}</p>
-        </div>
+        <div><p class="stat-label">Active</p><p class="stat-value">{{ totalActive }}</p></div>
       </div>
       <div class="stat-card red">
-        <div class="stat-icon"></div>
-        <div>
-          <p class="stat-label">Inactive</p>
-          <p class="stat-value">{{ totalClosed }}</p>
-        </div>
+        <div><p class="stat-label">Inactive</p><p class="stat-value">{{ totalClosed }}</p></div>
       </div>
     </div>
 
@@ -85,27 +75,23 @@ const deleteScholarship = (id: number) => {
             <th>Action</th>
           </tr>
         </thead>
-
         <tbody>
           <tr v-for="(sch, index) in scholarships" :key="sch.id">
             <td>{{ index + 1 }}</td>
             <td>{{ sch.title }}</td>
-            <td>{{ getSponsorName(sch.sponsorId) }}</td>
+            <td>{{ getSponsorName(sch.sponsor_id) }}</td>
             <td>{{ sch.field }}</td>
             <td>{{ sch.amount.toLocaleString() }}</td>
-            <td>{{ new Date(sch.deadline).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) }}</td>
+            <td>{{ new Date(sch.deadline).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) }}</td>
             <td>
               <span :class="['badge', getStatus(sch.deadline).toLowerCase()]">
                 {{ getStatus(sch.deadline) }}
               </span>
             </td>
             <td>
-              <button class="delete-btn" @click="deleteScholarship(sch.id)">
-                Delete
-              </button>
+              <button class="delete-btn" @click="deleteScholarship(sch.id)">Delete</button>
             </td>
           </tr>
-
           <tr v-if="scholarships.length === 0">
             <td colspan="8" class="empty">No scholarships available.</td>
           </tr>

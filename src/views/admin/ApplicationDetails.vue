@@ -1,49 +1,70 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { supabase } from "@/utils/supabase";
 
 const route = useRoute();
 const router = useRouter();
 
 const applicationId = Number(route.params.applicationId);
-
 const application = ref<any>(null);
 const student = ref<any>(null);
 const scholarship = ref<any>(null);
+const activeDoc = ref<string | null>(null);
 
-onMounted(() => {
-  const apps = JSON.parse(localStorage.getItem("applications") || "[]");
-  application.value = apps.find((a: any) => a.id === applicationId);
+onMounted(async () => {
+  const { data: appData } = await supabase
+    .from("applications")
+    .select("*")
+    .eq("id", applicationId)
+    .single();
+  application.value = appData;
 
-  if (!application.value) return;
+  if (!appData) return;
 
-  const users = JSON.parse(localStorage.getItem("users") || "[]");
-  student.value = users.find((u: any) => u.id === application.value.studentId);
+  const { data: userData } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", appData.student_id)
+    .single();
 
-  const scholarships = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  scholarship.value = scholarships.find((s: any) => s.id === application.value.scholarshipId);
+  const { data: profileData } = await supabase
+    .from("student_profiles")
+    .select("*")
+    .eq("id", appData.student_id)
+    .single();
+
+  student.value = { ...userData, ...profileData };
+
+  const { data: schData } = await supabase
+    .from("scholarships")
+    .select("*")
+    .eq("id", appData.scholarship_id)
+    .single();
+  scholarship.value = schData;
 });
 
-const updateStatus = (status: "Approved" | "Rejected") => {
-  const apps = JSON.parse(localStorage.getItem("applications") || "[]");
-  const app = apps.find((a: any) => a.id === applicationId);
-  if (!app) return;
-  app.status = status;
-  localStorage.setItem("applications", JSON.stringify(apps));
-  application.value.status = status;
-};
+const updateStatus = async (status: "Approved" | "Rejected") => {
+  const { error } = await supabase
+    .from("applications")
+    .update({ status, processed: true })
+    .eq("id", applicationId);
 
-const activeDoc = ref<string | null>(null);
+  if (error) {
+    console.error(error.message);
+    return;
+  }
+  application.value.status = status;
+  application.value.processed = true;
+};
 
 const openDocument = (data: string) => {
   activeDoc.value = data;
-
-}
+};
 </script>
 
 <template>
   <div class="page" v-if="application">
-
     <div class="page-header">
       <button class="back-btn" @click="router.back()">← Back</button>
       <h1>Application Detail</h1>
@@ -54,15 +75,14 @@ const openDocument = (data: string) => {
     </div>
 
     <div class="grid-layout">
-
       <div class="detail-card">
         <h2>Student Information</h2>
-        <div class="info-row"><label>Full Name</label><span>{{ application.details?.fullName }}</span></div>
-        <div class="info-row"><label>Age</label><span>{{ application.details?.age }}</span></div>
-        <div class="info-row"><label>Sex</label><span>{{ application.details?.sex }}</span></div>
+        <div class="info-row"><label>Full Name</label><span>{{ application.full_name }}</span></div>
+        <div class="info-row"><label>Age</label><span>{{ application.age }}</span></div>
+        <div class="info-row"><label>Sex</label><span>{{ application.sex }}</span></div>
         <div class="info-row"><label>Email</label><span>{{ student?.email }}</span></div>
         <div class="info-row"><label>Phone</label><span>{{ student?.phone }}</span></div>
-        <div class="info-row"><label>University/College</label><span>{{ student?.high_school }}</span></div>
+        <div class="info-row"><label>University</label><span>{{ student?.high_school }}</span></div>
         <div class="info-row"><label>Field</label><span>{{ student?.field }}</span></div>
         <div class="info-row"><label>Year</label><span>{{ student?.year }}</span></div>
       </div>
@@ -77,41 +97,38 @@ const openDocument = (data: string) => {
       </div>
 
       <div class="detail-card full-width">
-        <h2>📎 Submitted Documents</h2>
+        <h2>Submitted Documents</h2>
         <div class="docs-grid">
           <div class="doc-item">
             <div>
               <p class="doc-label">ID Card / Passport</p>
-              <p class="doc-name">{{ application.details?.idCard?.name || "Not provided" }}</p>
-              <button v-if="application.details?.idCard?.data" class="view-link" @click="openDocument(application.details.idCard.data)">
+              <p class="doc-name">{{ application.id_card_name || "Not provided" }}</p>
+              <button v-if="application.id_card_data" class="view-link" @click="openDocument(application.id_card_data)">
                 👁 View Document
               </button>
-              <span v-else class="no-doc">Old Version</span>
+              <span v-else class="no-doc">Not available</span>
             </div>
           </div>
-
           <div class="doc-item">
             <div>
               <p class="doc-label">Equivalence Document</p>
-              <p class="doc-name">{{ application.details?.equivalence?.name || "Not provided" }}</p>
-              <button v-if="application.details?.equivalence?.data" class="view-link" @click="openDocument(application.details.equivalence.data)">
+              <p class="doc-name">{{ application.equivalence_name || "Not provided" }}</p>
+              <button v-if="application.equivalence_data" class="view-link" @click="openDocument(application.equivalence_data)">
                 👁 View Document
               </button>
-              <span v-else class="no-doc">Old Version</span>
+              <span v-else class="no-doc">Not available</span>
             </div>
           </div>
-
           <div class="doc-item">
             <div>
               <p class="doc-label">Transcript</p>
-              <p class="doc-name">{{ application.details?.transcript?.name || "Not provided" }}</p>
-              <button v-if="application.details?.transcript?.data" class="view-link" @click="openDocument(application.details.transcript.data)">
+              <p class="doc-name">{{ application.transcript_name || "Not provided" }}</p>
+              <button v-if="application.transcript_data" class="view-link" @click="openDocument(application.transcript_data)">
                 👁 View Document
               </button>
-              <span v-else class="no-doc">Old Version</span>
+              <span v-else class="no-doc">Not available</span>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -122,21 +139,17 @@ const openDocument = (data: string) => {
             <button class="close-btn" @click="activeDoc = null">✕ Close</button>
           </div>
           <div class="modal-body">
-            <!--For images -->
             <img v-if="activeDoc.startsWith('data:image')" :src="activeDoc" class="doc-preview-img" />
-            <!--For PDFs-->
             <iframe v-else :src="activeDoc" class="doc-preview-pdf"></iframe>
           </div>
         </div>
       </div>
-
     </div>
 
-    <div class="actions" v-if="application.status === 'Pending'">
+    <div class="actions" v-if="!application.processed && application.status === 'Pending'">
       <button class="approve-btn" @click="updateStatus('Approved')">Approve</button>
       <button class="reject-btn" @click="updateStatus('Rejected')">Reject</button>
     </div>
-
   </div>
 
   <div v-else class="not-found">Application not found.</div>

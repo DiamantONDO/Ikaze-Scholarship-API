@@ -1,36 +1,30 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { supabase } from "@/utils/supabase";
 
-interface Student {
-  id: number;
-  fullName: string;
-  email: string;
-  phone: string;
-  high_school: string;
-  field: string;
-  year: string;
-  status?: "Active" | "Inactive";
-}
+const students = ref<any[]>([]);
 
-const students = ref<Student[]>([]);
+onMounted(async () => {
+  const { data: userData } = await supabase
+    .from("users")
+    .select("id, full_name, email")
+    .eq("role", "student");
 
-const fetchStudents = () => {
-  const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
-  students.value = allUsers.filter((u: any) => u.role === "student");
-};
+  const { data: profileData } = await supabase
+    .from("student_profiles")
+    .select("id, phone, high_school, field, year");
 
-onMounted(fetchStudents);
+  const profiles = profileData || [];
 
-const toggleStatus = (student: Student) => {
+  students.value = (userData || []).map(u => ({
+    ...u,
+    ...profiles.find(p => p.id === u.id),
+    status: "Active",
+  }));
+});
+
+const toggleStatus = async (student: any) => {
   student.status = student.status === "Active" ? "Inactive" : "Active";
-
-  // Persist the change back to localStorage
-  const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
-  const index = allUsers.findIndex((u: any) => u.id === student.id);
-  if (index !== -1) {
-    allUsers[index].status = student.status;
-    localStorage.setItem("users", JSON.stringify(allUsers));
-  }
 };
 </script>
 
@@ -39,7 +33,6 @@ const toggleStatus = (student: Student) => {
     <h1 class="page-title">Students Management</h1>
 
     <div class="table-card">
-
       <div class="summary-row">
         <div class="summary-item">
           <span class="summary-label">Total Students</span>
@@ -47,15 +40,11 @@ const toggleStatus = (student: Student) => {
         </div>
         <div class="summary-item">
           <span class="summary-label">Active</span>
-          <span class="summary-value green">
-            {{ students.filter(s => s.status !== "Inactive").length }}
-          </span>
+          <span class="summary-value green">{{ students.filter(s => s.status !== "Inactive").length }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Inactive</span>
-          <span class="summary-value red">
-            {{ students.filter(s => s.status === "Inactive").length }}
-          </span>
+          <span class="summary-value red">{{ students.filter(s => s.status === "Inactive").length }}</span>
         </div>
       </div>
 
@@ -73,11 +62,10 @@ const toggleStatus = (student: Student) => {
             <th>Action</th>
           </tr>
         </thead>
-
         <tbody>
           <tr v-for="(student, index) in students" :key="student.id">
             <td>{{ index + 1 }}</td>
-            <td>{{ student.fullName }}</td>
+            <td>{{ student.full_name }}</td>
             <td>{{ student.email }}</td>
             <td>{{ student.phone }}</td>
             <td>{{ student.high_school }}</td>
@@ -85,7 +73,7 @@ const toggleStatus = (student: Student) => {
             <td>{{ student.year }}</td>
             <td>
               <span :class="student.status === 'Inactive' ? 'badge inactive' : 'badge active'">
-                {{ student.status === "Inactive" ? "Inactive" : "Active" }}
+                {{ student.status }}
               </span>
             </td>
             <td>
@@ -97,7 +85,6 @@ const toggleStatus = (student: Student) => {
               </button>
             </td>
           </tr>
-
           <tr v-if="students.length === 0">
             <td colspan="9" class="empty">No students registered yet.</td>
           </tr>

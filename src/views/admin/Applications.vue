@@ -1,18 +1,39 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { supabase } from "@/utils/supabase";
 
 const router = useRouter();
-
 
 const applications = ref<any[]>([]);
 const scholarships = ref<any[]>([]);
 const students = ref<any[]>([]);
 
-onMounted(() => {
-  applications.value = JSON.parse(localStorage.getItem("applications") || "[]");
-  scholarships.value = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  students.value = JSON.parse(localStorage.getItem("users") || "[]"); // all users
+onMounted(async () => {
+  const { data: appData } = await supabase
+    .from("applications")
+    .select("*")
+    .order("date", { ascending: false });
+  applications.value = appData || [];
+
+  const scholarshipIds = [...new Set(applications.value.map(a => a.scholarship_id))];
+  const studentIds = [...new Set(applications.value.map(a => a.student_id))];
+
+  if (scholarshipIds.length > 0) {
+    const { data: schData } = await supabase
+      .from("scholarships")
+      .select("id, title")
+      .in("id", scholarshipIds);
+    scholarships.value = schData || [];
+  }
+
+  if (studentIds.length > 0) {
+    const { data: studentData } = await supabase
+      .from("users")
+      .select("id, full_name")
+      .in("id", studentIds);
+    students.value = studentData || [];
+  }
 });
 
 const getScholarshipTitle = (id: number) => {
@@ -22,23 +43,31 @@ const getScholarshipTitle = (id: number) => {
 
 const getStudentName = (id: number) => {
   const student = students.value.find(s => s.id === id);
-  return student ? student.fullName : "Unknown";
+  return student ? student.full_name : "Unknown";
 };
 
-const updateStatus = (appId: number, status: "Approved" | "Rejected") => {
+const updateStatus = async (appId: number, status: "Approved" | "Rejected") => {
+  const { error } = await supabase
+    .from("applications")
+    .update({ status, processed: true })
+    .eq("id", appId);
+
+  if (error) {
+    console.error(error.message);
+    return;
+  }
+
   const app = applications.value.find(a => a.id === appId);
-  if (!app) return;
-  app.status = status;
-  app.processed = true;
-  localStorage.setItem("applications", JSON.stringify(applications.value));
+  if (app) {
+    app.status = status;
+    app.processed = true;
+  }
 };
-
 </script>
 
 <template>
   <div class="page">
     <h1 class="page-title">Applications Management</h1>
-
     <table>
       <thead>
         <tr>
@@ -50,24 +79,19 @@ const updateStatus = (appId: number, status: "Approved" | "Rejected") => {
           <th>Action</th>
         </tr>
       </thead>
-
       <tbody>
         <tr v-for="app in applications" :key="app.id">
-          <td>{{ getStudentName(app.studentId) }}</td>
-          <td>{{ getScholarshipTitle(app.scholarshipId) }}</td>
-          <td>{{ new Date(app.date).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric", hour: "numeric", minute: "numeric"}) }}</td>
+          <td>{{ getStudentName(app.student_id) }}</td>
+          <td>{{ getScholarshipTitle(app.scholarship_id) }}</td>
+          <td>{{ new Date(app.date).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) }}</td>
           <td>
-            <span :class="['badge', app.status.toLowerCase()]">
-            {{ app.status }}
-            </span>
+            <span :class="['badge', app.status.toLowerCase()]">{{ app.status }}</span>
           </td>
-
           <td>
             <button class="detail-btn" @click="router.push(`/admin/applications/${app.id}`)">
               View Details
             </button>
           </td>
-
           <td>
             <span v-if="app.processed" class="already-processed">Already Processed</span>
             <template v-else-if="app.status === 'Pending'">
@@ -76,10 +100,9 @@ const updateStatus = (appId: number, status: "Approved" | "Rejected") => {
             </template>
             <span v-else class="already-processed">Already Processed</span>
           </td>
-
         </tr>
         <tr v-if="applications.length === 0">
-          <td colspan="9" class="empty">No applications yet.</td>
+          <td colspan="6" class="empty">No applications yet.</td>
         </tr>
       </tbody>
     </table>

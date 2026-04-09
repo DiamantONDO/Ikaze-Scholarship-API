@@ -1,37 +1,51 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { supabase } from "@/utils/supabase";
 
-interface Payment {
-  id: number;
-  sponsorId: number;
-  studentId: number;
-  scholarshipId: number;
-  month: string;
-  amount: number;
-  status: "paid" | "pending";
-  date: string;
-}
-
-const payments = ref<Payment[]>([]);
+const payments = ref<any[]>([]);
 const users = ref<any[]>([]);
 const scholarships = ref<any[]>([]);
 
-const fetchData = () => {
-  payments.value = JSON.parse(localStorage.getItem("payments") || "[]");
-  users.value = JSON.parse(localStorage.getItem("users") || "[]");
-  scholarships.value = JSON.parse(localStorage.getItem("scholarships") || "[]");
-};
+onMounted(async () => {
+  const { data: paymentData } = await supabase
+    .from("payments")
+    .select("*")
+    .order("date", { ascending: false });
+  payments.value = paymentData || [];
 
-onMounted(fetchData);
+  const userIds = [
+    ...new Set([
+      ...payments.value.map(p => p.student_id),
+      ...payments.value.map(p => p.sponsor_id),
+    ])
+  ];
+
+  if (userIds.length > 0) {
+    const { data: userData } = await supabase
+      .from("users")
+      .select("id, full_name")
+      .in("id", userIds);
+    users.value = userData || [];
+  }
+
+  const scholarshipIds = [...new Set(payments.value.map(p => p.scholarship_id))];
+  if (scholarshipIds.length > 0) {
+    const { data: schData } = await supabase
+      .from("scholarships")
+      .select("id, title")
+      .in("id", scholarshipIds);
+    scholarships.value = schData || [];
+  }
+});
 
 const getStudentName = (id: number) => {
   const user = users.value.find(u => u.id === id);
-  return user ? user.fullName : "Unknown";
+  return user ? user.full_name : "Unknown";
 };
 
 const getSponsorName = (id: number) => {
   const user = users.value.find(u => u.id === id);
-  return user ? user.fullName : "Unknown";
+  return user ? user.full_name : "Unknown";
 };
 
 const getScholarshipTitle = (id: number) => {
@@ -44,11 +58,9 @@ const totalPaid = computed(() =>
     .filter(p => p.status === "paid")
     .reduce((sum, p) => sum + p.amount, 0)
 );
-
 const totalPending = computed(() =>
   payments.value.filter(p => p.status === "pending").length
 );
-
 const totalTransactions = computed(() => payments.value.length);
 </script>
 
@@ -94,24 +106,21 @@ const totalTransactions = computed(() => payments.value.length);
             <th>Status</th>
           </tr>
         </thead>
-
         <tbody>
           <tr v-for="(payment, index) in payments" :key="payment.id">
             <td>{{ index + 1 }}</td>
-            <td>{{ getStudentName(payment.studentId) }}</td>
-            <td>{{ getSponsorName(payment.sponsorId) }}</td>
-            <td>{{ getScholarshipTitle(payment.scholarshipId) }}</td>
+            <td>{{ getStudentName(payment.student_id) }}</td>
+            <td>{{ getSponsorName(payment.sponsor_id) }}</td>
+            <td>{{ getScholarshipTitle(payment.scholarship_id) }}</td>
             <td>{{ payment.amount.toLocaleString() }}</td>
-            <td>{{ new Date(payment.date).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric", 
-            hour: "numeric", minute: "numeric"}) }}</td>
-            <td>{{ new Date(payment.month).toLocaleDateString("en-GB", {month: "long"}) }}</td>
+            <td>{{ new Date(payment.date).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric", hour: "numeric", minute: "numeric" }) }}</td>
+            <td>{{ new Date(payment.month).toLocaleDateString("en-GB", { month: "long" }) }}</td>
             <td>
               <span :class="['badge', payment.status]">
                 {{ payment.status === "paid" ? "Paid" : "Pending" }}
               </span>
             </td>
           </tr>
-
           <tr v-if="payments.length === 0">
             <td colspan="8" class="empty">No payments recorded yet.</td>
           </tr>

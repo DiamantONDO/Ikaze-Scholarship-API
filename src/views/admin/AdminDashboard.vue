@@ -1,51 +1,80 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { supabase } from "@/utils/supabase";
 
 const students = ref<any[]>([]);
 const scholarships = ref<any[]>([]);
 const applications = ref<any[]>([]);
 const payments = ref<any[]>([]);
 
-const fetchData = () => {
-  const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
-  students.value = allUsers.filter((u: any) => u.role === "student");
+onMounted(async () => {
+  const { data: studentData } = await supabase
+    .from("users")
+    .select("id")
+    .eq("role", "student");
+  students.value = studentData || [];
 
-  scholarships.value = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  applications.value = JSON.parse(localStorage.getItem("applications") || "[]");
-  payments.value = JSON.parse(localStorage.getItem("payments") || "[]");
-};
+  const { data: scholarshipData } = await supabase
+    .from("scholarships")
+    .select("id");
+  scholarships.value = scholarshipData || [];
 
-onMounted(fetchData);
+  const { data: appData } = await supabase
+    .from("applications")
+    .select("*")
+    .order("date", { ascending: false });
+  applications.value = appData || [];
+
+  const { data: paymentData } = await supabase
+    .from("payments")
+    .select("amount");
+  payments.value = paymentData || [];
+
+  // Fetch student names and scholarship titles for recent applications
+  const studentIds = [...new Set(applications.value.map(a => a.student_id))];
+  const scholarshipIds = [...new Set(applications.value.map(a => a.scholarship_id))];
+
+  if (studentIds.length > 0) {
+    const { data: studentNames } = await supabase
+      .from("users")
+      .select("id, full_name")
+      .in("id", studentIds);
+    studentMap.value = Object.fromEntries((studentNames || []).map(s => [s.id, s.full_name]));
+  }
+
+  if (scholarshipIds.length > 0) {
+    const { data: scholarshipTitles } = await supabase
+      .from("scholarships")
+      .select("id, title")
+      .in("id", scholarshipIds);
+    scholarshipMap.value = Object.fromEntries((scholarshipTitles || []).map(s => [s.id, s.title]));
+  }
+});
+
+const studentMap = ref<Record<number, string>>({});
+const scholarshipMap = ref<Record<number, string>>({});
 
 const totalStudents = computed(() => students.value.length);
 const totalScholarships = computed(() => scholarships.value.length);
 const totalApplications = computed(() => applications.value.length);
 const totalPayments = computed(() =>
-  payments.value.reduce((sum: number, p: any) => sum + p.amount, 0)
+  payments.value.reduce((sum, p) => sum + p.amount, 0)
 );
-
 const pendingApplications = computed(() =>
   applications.value.filter(a => a.status === "Pending").length
 );
-
 const approvedApplications = computed(() =>
   applications.value.filter(a => a.status === "Approved").length
 );
-
-const getStudentName = (studentId: number) => {
-  const student = students.value.find(s => s.id === studentId);
-  return student ? student.fullName : "Unknown";
-};
-
-const getScholarshipTitle = (scholarshipId: number) => {
-  const sch = scholarships.value.find(s => s.id === scholarshipId);
-  return sch ? sch.title : "Unknown";
-};
-
-// Show only last 5 applications
-const recentApplications = computed(() =>
-  [...applications.value].reverse().slice(0, 5)
+const rejectedApplications = computed(() =>
+  applications.value.filter(a => a.status === "Rejected").length
 );
+const recentApplications = computed(() =>
+  applications.value.slice(0, 5)
+);
+
+const getStudentName = (id: number) => studentMap.value[id] || "Unknown";
+const getScholarshipTitle = (id: number) => scholarshipMap.value[id] || "Unknown";
 </script>
 
 <template>
@@ -60,7 +89,6 @@ const recentApplications = computed(() =>
           <p>{{ totalStudents }}</p>
         </div>
       </div>
-      
       <div class="card orange">
         <div class="card-icon"></div>
         <div>
@@ -68,7 +96,6 @@ const recentApplications = computed(() =>
           <p>{{ totalApplications }}</p>
         </div>
       </div>
-
       <div class="card navy">
         <div class="card-icon"></div>
         <div>
@@ -76,7 +103,6 @@ const recentApplications = computed(() =>
           <p>{{ totalScholarships }}</p>
         </div>
       </div>
-
       <div class="card green">
         <div class="card-icon"></div>
         <div>
@@ -97,9 +123,7 @@ const recentApplications = computed(() =>
       </div>
       <div class="mini-card">
         <span class="mini-label">Rejected Applications</span>
-        <span class="mini-value red-text">
-          {{ applications.filter(a => a.status === "Rejected").length }}
-        </span>
+        <span class="mini-value red-text">{{ rejectedApplications }}</span>
       </div>
     </div>
 
@@ -108,7 +132,6 @@ const recentApplications = computed(() =>
         <h2>Recent Applications</h2>
         <span class="table-sub">Showing last {{ recentApplications.length }} entries</span>
       </div>
-
       <table>
         <thead>
           <tr>
@@ -119,27 +142,22 @@ const recentApplications = computed(() =>
             <th>Status</th>
           </tr>
         </thead>
-
         <tbody>
           <tr v-for="(app, index) in recentApplications" :key="app.id">
             <td>{{ index + 1 }}</td>
-            <td>{{ getStudentName(app.studentId) }}</td>
-            <td>{{ getScholarshipTitle(app.scholarshipId) }}</td>
-            <td>{{ app.date ? new Date(app.date).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) : "—" }}</td>
+            <td>{{ getStudentName(app.student_id) }}</td>
+            <td>{{ getScholarshipTitle(app.scholarship_id) }}</td>
+            <td>{{ app.date ? new Date(app.date).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) : "—" }}</td>
             <td>
-              <span :class="['badge', app.status.toLowerCase()]">
-                {{ app.status }}
-              </span>
+              <span :class="['badge', app.status.toLowerCase()]">{{ app.status }}</span>
             </td>
           </tr>
-
           <tr v-if="applications.length === 0">
             <td colspan="5" class="empty">No applications yet.</td>
           </tr>
         </tbody>
       </table>
     </div>
-
   </div>
 </template>
 
