@@ -1,81 +1,73 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { supabase } from "@/utils/supabase";
 
 const router = useRouter();
 
-const sponsor = JSON.parse(sessionStorage.getItem("sponsor_session") || "null");
+const sponsor = JSON.parse(sessionStorage.getItem("sponsor_session") || "{}");
 
 const title = ref("");
 const field = ref("");
-const funding = ref("");
-const amount = ref<number | null>(null);
+const amount = ref("");
 const deadline = ref("");
 const description = ref("");
-const requirementInput = ref("");
 const requirements = ref<string[]>([]);
-const status = ref<"active" | "inactive">("active");
+const newRequirement = ref("");
+const status = ref("active");
+const errorMessage = ref("");
+
 const fieldList = [
-  "Computer Science", "Marketing", "Medicine", "MBC (Media & Business)", 
-  "Accounting", "Civil Engineering", "Psychology", "Economics", 
-  "Education", "Law", "Architecture", "Biology", 
-  "Mathematics", "Chemistry"
-]
+  "Science", "Business", "Marketing", "Economy",
+  "MBC", "Science (MBC)", "Engineering", "Medicine",
+  "Law", "Education", "Technology", "Agriculture", "Other"
+];
 
-
-
-// Add a requirement to the list
 const addRequirement = () => {
-  if (!requirementInput.value.trim()) return;
-  requirements.value.push(requirementInput.value.trim());
-  requirementInput.value = "";
+  const trimmed = newRequirement.value.trim();
+  if (!trimmed) return;
+  requirements.value.push(trimmed);
+  newRequirement.value = "";
 };
 
-// Remove a requirement
 const removeRequirement = (index: number) => {
   requirements.value.splice(index, 1);
 };
 
-const submitScholarship = () => {
+const submitScholarship = async () => {
+  errorMessage.value = "";
+
   if (!title.value || !field.value || !amount.value || !deadline.value || !description.value) {
-    alert("Please fill all fields.");
+    errorMessage.value = "Please fill in all fields.";
     return;
   }
 
   if (requirements.value.length === 0) {
-    alert("Please add at least one requirement.");
+    errorMessage.value = "Please add at least one requirement.";
     return;
   }
 
-  //localStorage not sessionStorage because scholarships must persist across tabs
-  const scholarships = JSON.parse(localStorage.getItem("scholarships") || "[]");
-
   const newScholarship = {
     id: Date.now(),
-    sponsorId: sponsor.id,
+    sponsor_id: sponsor.id,
     title: title.value,
-    funding: funding.value,
     field: field.value,
-    amount: amount.value,
+    amount: Number(amount.value),
     deadline: deadline.value,
     description: description.value,
     requirements: requirements.value,
-    status: status.value
+    status: status.value,
   };
 
-  scholarships.push(newScholarship);
-  localStorage.setItem("scholarships", JSON.stringify(scholarships));
+  const { error } = await supabase.from("scholarships").insert(newScholarship);
+
+  if (error) {
+    errorMessage.value = "Failed to post scholarship. Please try again.";
+    console.error(error.message);
+    return;
+  }
 
   alert("Scholarship posted successfully!");
-
-  title.value = "";
-  field.value = "";
-  amount.value = null;
-  deadline.value = "";
-  description.value = "";
-  requirements.value = [];
-  status.value = "active";
-
   router.push("/sponsor/scholarships");
 };
 </script>
@@ -83,6 +75,8 @@ const submitScholarship = () => {
 <template>
   <div class="page">
     <h1>Post New Scholarship</h1>
+
+    <div class="error-box" v-if="errorMessage">{{ errorMessage }}</div>
 
     <div class="form-card">
 
@@ -92,19 +86,13 @@ const submitScholarship = () => {
       </div>
 
       <div class="form-group">
-        <label for="field-study">Field of Study</label>
-        <select id="field-study" v-model="field">
-          <option disabled value="">Select one from list below</option>
-           <option v-for="option in fieldList" :key="option" :value="option">
+        <label>Field of Study</label>
+        <select v-model="field">
+          <option disabled value="">Select field of study</option>
+          <option v-for="option in fieldList" :key="option" :value="option">
             {{ option }}
           </option>
         </select>
-      </div>
-
-
-      <div class="form-group">
-        <label>Funding</label>
-        <input type="textarea" v-model="funding" placeholder="e.g. Funding Source" />
       </div>
 
       <div class="form-group">
@@ -131,7 +119,7 @@ const submitScholarship = () => {
         <div class="requirement-input-row">
           <input
             type="text"
-            v-model="requirementInput"
+            v-model="newRequirement"
             placeholder="e.g. Minimum GPA of 3.5"
             @keydown.enter.prevent="addRequirement"
           />
@@ -156,6 +144,7 @@ const submitScholarship = () => {
       </div>
 
       <button class="submit-btn" @click="submitScholarship">Post Scholarship</button>
+
     </div>
   </div>
 </template>

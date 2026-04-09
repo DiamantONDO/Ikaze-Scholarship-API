@@ -1,39 +1,44 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { supabase } from "@/utils/supabase";
 
 const router = useRouter();
 
-const sponsor = JSON.parse(sessionStorage.getItem("sponsor_session") || "null");
+const sponsor = JSON.parse(sessionStorage.getItem("sponsor_session") || "{}");
+const scholarships = ref<any[]>([]);
 
-interface Scholarship {
-  id: number;
-  sponsorId: number;
-  title: string;
-  field: string;
-  amount: number;
-  deadline: string;
-  requirements: { passport: string; equivalence: string };
-  status: "active" | "inactive";
-}
+const fetchScholarships = async () => {
+  const { data, error } = await supabase
+    .from("scholarships")
+    .select("*")
+    .eq("sponsor_id", sponsor.id)
+    .order("created_at", { ascending: false });
 
-const scholarships = ref<Scholarship[]>([]);
+  if (error) {
+    console.error(error.message);
+    return;
+  }
 
-const fetchScholarships = () => {
-  const allScholarships = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  scholarships.value = allScholarships.filter((s: Scholarship) => s.sponsorId === sponsor.id);
+  scholarships.value = data || [];
 };
 
 onMounted(fetchScholarships);
 
-const deleteScholarship = (id: number) => {
+const deleteScholarship = async (id: number) => {
   if (!confirm("Are you sure you want to delete this scholarship?")) return;
 
-  let allScholarships = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  allScholarships = allScholarships.filter((s: Scholarship) => s.id !== id);
-  localStorage.setItem("scholarships", JSON.stringify(allScholarships));
+  const { error } = await supabase
+    .from("scholarships")
+    .delete()
+    .eq("id", id);
 
-  fetchScholarships();
+  if (error) {
+    console.error(error.message);
+    return;
+  }
+
+  await fetchScholarships();
 };
 
 const viewApplications = (id: number) => {
