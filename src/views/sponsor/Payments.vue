@@ -1,220 +1,72 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
+import { supabase } from "@/utils/supabase";
 
 const sponsor = JSON.parse(sessionStorage.getItem("sponsor_session") || "null");
 
-interface Application {
-  id: number;
-  studentId: number;
-  scholarshipId: number;
-  date: string;
-  status: string;
-}
+const scholarships = ref<any[]>([]);
+const applications = ref<any[]>([]);
+const students = ref<any[]>([]);
 
-interface Scholarship {
-  id: number;
-  sponsorId: number;
-  title: string;
-  amount: number;
-}
+onMounted(async () => {
+  const { data: scholarshipData } = await supabase
+    .from("scholarships")
+    .select("*")
+    .eq("sponsor_id", sponsor.id);
+  scholarships.value = scholarshipData || [];
 
-interface Student {
-  id: number;
-  fullName: string;
-  email: string;
-}
+  const scholarshipIds = scholarships.value.map(s => s.id);
 
-interface Payment {
-  id: number;
-  sponsorId: number;
-  studentId: number;
-  scholarshipId: number;
-  month: string;
-  amount: number;
-  status: "paid" | "pending";
-  date: string;
-}
+  if (scholarshipIds.length > 0) {
+    const { data: appData } = await supabase
+      .from("applications")
+      .select("*")
+      .in("scholarship_id", scholarshipIds);
+    applications.value = appData || [];
 
-const applications = ref<Application[]>([]);
-const scholarships = ref<Scholarship[]>([]);
-const students = ref<Student[]>([]);
-const payments = ref<Payment[]>([]);
-
-const selectedStudentId = ref<number | null>(null);
-const selectedScholarshipId = ref<number | null>(null);
-const selectedMonth = ref("");
-
-const selectedDate = ref("");
-
-const fetchData = () => {
-  const allScholarships = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  scholarships.value = allScholarships.filter((s: Scholarship) => s.sponsorId === sponsor.id);
-
-  const allApplications: Application[] = JSON.parse(localStorage.getItem("applications") || "[]");
-  const sponsorScholarshipIds = scholarships.value.map(s => s.id);
-
-  // Only approved applications for this sponsor's scholarships
-  applications.value = allApplications.filter(
-    app => sponsorScholarshipIds.includes(app.scholarshipId) && app.status === "Approved"
-  );
-
-  const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
-  students.value = allUsers.filter((u: any) => u.role === "student");
-
-  payments.value = JSON.parse(localStorage.getItem("payments") || "[]");
-};
-
-onMounted(fetchData);
-
-// Get student by id
-const getStudent = (id: number) => students.value.find(s => s.id === id);
-const getScholarship = (id: number) => scholarships.value.find(s => s.id === id);
-
-// Approved students with their scholarship info
-const approvedEntries = computed(() =>
-  applications.value
-    .filter(app => app.scholarshipId === selectedScholarshipId.value)
-    .map(app => ({
-      app,
-      student: getStudent(app.studentId),
-      scholarship: getScholarship(app.scholarshipId)
-    }))
-);
-
-// Selected scholarship amount
-const selectedAmount = computed(() => {
-  if (!selectedScholarshipId.value) return 0;
-  return getScholarship(selectedScholarshipId.value)?.amount || 0;
+    const studentIds = [...new Set(applications.value.map(a => a.student_id))];
+    if (studentIds.length > 0) {
+      const { data: studentData } = await supabase
+        .from("users")
+        .select("id, full_name, email")
+        .in("id", studentIds);
+      students.value = studentData || [];
+    }
+  }
 });
 
-const processPayment = () => {
-  if (!selectedStudentId.value || !selectedScholarshipId.value || !selectedDate.value) {
-    alert("Please select a scholarship, student and date.");
-    return;
-  }
-
-  const alreadyPaid = payments.value.find(
-    p =>
-      p.studentId === selectedStudentId.value &&
-      p.scholarshipId === selectedScholarshipId.value &&
-      p.month === selectedDate.value
-  );
-
-  if (alreadyPaid) {
-    alert("This student has already been paid for this date.");
-    return;
-  }
-
-  const newPayment: Payment = {
-    id: Date.now(),
-    sponsorId: sponsor.id,
-    studentId: selectedStudentId.value,
-    scholarshipId: selectedScholarshipId.value,
-    month: selectedDate.value,  // reusing month field to store date
-    amount: selectedAmount.value,
-    status: "paid",
-    date: new Date().toISOString()
-  };
-
-  payments.value.push(newPayment);
-  localStorage.setItem("payments", JSON.stringify(payments.value));
-
-  alert(`Payment of ${selectedAmount.value.toLocaleString()} RWF processed successfully!`);
-
-  selectedStudentId.value = null;
-  selectedDate.value = "";
-};
-
-// Payment history
-const sponsorPayments = computed(() =>
-  payments.value.filter(p => p.sponsorId === sponsor.id)
-);
+const getStudent = (id: number) => students.value.find(s => s.id === id);
+const getScholarship = (id: number) => scholarships.value.find(s => s.id === id);
 </script>
 
 <template>
   <div class="page">
-    <h1>Payments</h1>
-
-    <div class="form-card">
-      <h2>Process New Payment</h2>
-
-      <div class="form-grid">
-        
-        <div class="form-group">
-          <label>Select Scholarship</label>
-          <select v-model="selectedScholarshipId">
-            <option disabled :value="null">-- Choose Scholarship --</option>
-            <option v-for="sch in scholarships" :key="sch.id" :value="sch.id">
-              {{ sch.title }}
-            </option>
-          </select>
-        </div>
-
-
-        <div class="form-group">
-          <label>Select Student</label>
-          <select v-model="selectedStudentId" :disabled="!selectedScholarshipId">
-            <option disabled :value="null">
-              {{ selectedScholarshipId ? "Choose Student" :"-- Choose Scholarship first --" }} 
-            </option>
-            <option
-              v-for="entry in approvedEntries"
-              :key="entry.app.id"
-              :value="entry.student?.id"
-            >
-              {{ entry.student?.fullName }} — {{ entry.scholarship?.title }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Payment Date</label>
-          <input style="height: 58%;" type="date" v-model="selectedDate"/>
-        </div>
-
-        <div class="form-group">
-          <label>Amount to Pay</label>
-          <div class="amount-box">
-            {{ selectedAmount.toLocaleString() }} RWF
-          </div>
-        </div>
-      </div>
-
-      <button class="pay-btn" @click="processPayment">
-        Process Payment
-      </button>
-    </div>
-
-    <div class="table-card">
-      <h2>Payment History</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Student</th>
-            <th>Scholarship</th>
-            <th>Month</th>
-            <th>Amount (RWF)</th>
-            <th>Payment Date</th>
-            <th>Status</th>
+    <h1>Scholarship Applications</h1>
+    <table class="applications-table">
+      <thead>
+        <tr>
+          <th>Scholarship</th>
+          <th>Student</th>
+          <th>Email</th>
+          <th>Date of Application</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template v-for="app in applications" :key="app.id">
+          <tr v-if="getScholarship(app.scholarship_id)">
+            <td>{{ getScholarship(app.scholarship_id)?.title }}</td>
+            <td>{{ getStudent(app.student_id)?.full_name || "Unknown" }}</td>
+            <td>{{ getStudent(app.student_id)?.email || "Unknown" }}</td>
+            <td>{{ new Date(app.date).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) }}</td>
+            <td :class="app.status.toLowerCase()">{{ app.status.toUpperCase() }}</td>
           </tr>
-        </thead>
-        <tbody>
-          <template v-for="payment in sponsorPayments" :key="payment.id">
-            <tr>
-              <td>{{ getStudent(payment.studentId)?.fullName || "Unknown" }}</td>
-              <td>{{ getScholarship(payment.scholarshipId)?.title || "Unknown" }}</td>
-              <td>{{ new Date (payment.month).toLocaleDateString("en-GB", {month: "long"}) }}</td>
-              <td>{{ payment.amount.toLocaleString() }}</td>
-              <td>{{ new Date(payment.date).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) }}</td>
-              <td class="paid">{{ payment.status.toUpperCase() }}</td>
-            </tr>
-          </template>
-          <tr v-if="sponsorPayments.length === 0">
-            <td colspan="6" style="text-align:center; color:gray;">No payments yet.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+        </template>
+        <tr v-if="applications.length === 0">
+          <td colspan="5" style="text-align:center;">No applications yet.</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 

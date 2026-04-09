@@ -1,51 +1,36 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { getScholarships, getPayments, getApplications } from "@/utils/storage";
-
-interface Scholarship {
-  id: number;
-  sponsorId: number;
-  title: string;
-  field: string;
-  amount: number;
-  deadline: string;
-  status: "active" | "inactive";
-}
-
-interface Payment {
-  id: number;
-  sponsorId: number;
-  amount: number;
-  status: "paid" | "pending";
-}
-
-interface Application {
-  id: number;
-  scholarshipId: number;
-  studentId: number;
-  status: string;
-  date: string;
-}
+import { supabase } from "@/utils/supabase";
 
 const sponsor = JSON.parse(sessionStorage.getItem("sponsor_session") || "null");
 
-const scholarships = ref<Scholarship[]>([]);
-const payments = ref<Payment[]>([]);
-const applications = ref<Application[]>([]);
+const scholarships = ref<any[]>([]);
+const payments = ref<any[]>([]);
+const applications = ref<any[]>([]);
 
-const fetchData = () => {
-  const all = JSON.parse(localStorage.getItem("scholarships") || "[]");
-  scholarships.value = all.filter((s: Scholarship) => Number(s.sponsorId) === Number(sponsor.id));
+onMounted(async () => {
+  const { data: scholarshipData } = await supabase
+    .from("scholarships")
+    .select("*")
+    .eq("sponsor_id", sponsor.id);
+  scholarships.value = scholarshipData || [];
 
-  const allPayments: Payment[] = JSON.parse(localStorage.getItem("payments") || "[]");
-  payments.value = allPayments.filter(p => Number(p.sponsorId) === Number(sponsor.id));
+  const scholarshipIds = scholarships.value.map(s => s.id);
 
-  const allApps: Application[] = JSON.parse(localStorage.getItem("applications") || "[]");
-  const sponsorScholarshipIds = scholarships.value.map(s => s.id);
-  applications.value = allApps.filter(a => sponsorScholarshipIds.includes(a.scholarshipId));
-};
+  if (scholarshipIds.length > 0) {
+    const { data: appData } = await supabase
+      .from("applications")
+      .select("*")
+      .in("scholarship_id", scholarshipIds);
+    applications.value = appData || [];
+  }
 
-onMounted(fetchData);
+  const { data: paymentData } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("sponsor_id", sponsor.id);
+  payments.value = paymentData || [];
+});
 
 const totalScholarships = computed(() => scholarships.value.length);
 const activeScholarships = computed(() => scholarships.value.filter(s => s.status === "active").length);
@@ -55,14 +40,12 @@ const paymentsDone = computed(() => payments.value.filter(p => p.status === "pai
 const totalAmountPaid = computed(() =>
   payments.value.filter(p => p.status === "paid").reduce((sum, p) => sum + p.amount, 0)
 );
-
 const pendingApplications = computed(() => applications.value.filter(a => a.status === "Pending").length);
 const approvedApplications = computed(() => applications.value.filter(a => a.status === "Approved").length);
 
 const getStatus = (deadline: string) =>
   new Date(deadline) >= new Date() ? "Active" : "Closed";
 
-// Show last 5 scholarships
 const recentScholarships = computed(() =>
   [...scholarships.value].reverse().slice(0, 5)
 );
@@ -80,7 +63,6 @@ const recentScholarships = computed(() =>
           <p>{{ totalScholarships }}</p>
         </div>
       </div>
-
       <div class="card green">
         <div class="card-icon"></div>
         <div>
@@ -88,7 +70,6 @@ const recentScholarships = computed(() =>
           <p>{{ activeScholarships }}</p>
         </div>
       </div>
-
       <div class="card orange">
         <div class="card-icon"></div>
         <div>
@@ -96,7 +77,6 @@ const recentScholarships = computed(() =>
           <p>{{ totalApplications }}</p>
         </div>
       </div>
-
       <div class="card navy">
         <div class="card-icon"></div>
         <div>
@@ -130,7 +110,6 @@ const recentScholarships = computed(() =>
         <h2>My Scholarships</h2>
         <RouterLink to="/sponsor/post" class="add-btn">+ Post New</RouterLink>
       </div>
-
       <table>
         <thead>
           <tr>
@@ -142,28 +121,25 @@ const recentScholarships = computed(() =>
             <th>Status</th>
           </tr>
         </thead>
-
         <tbody>
           <tr v-for="(scholarship, index) in recentScholarships" :key="scholarship.id">
             <td>{{ index + 1 }}</td>
             <td>{{ scholarship.title }}</td>
             <td>{{ scholarship.field }}</td>
             <td>{{ scholarship.amount.toLocaleString() }}</td>
-            <td>{{ new Date(scholarship.deadline).toLocaleDateString("en-GB", {day: "2-digit", month: "long", year: "numeric"}) }}</td>
+            <td>{{ new Date(scholarship.deadline).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) }}</td>
             <td>
               <span :class="['badge', getStatus(scholarship.deadline).toLowerCase()]">
                 {{ getStatus(scholarship.deadline) }}
               </span>
             </td>
           </tr>
-
           <tr v-if="scholarships.length === 0">
             <td colspan="6" class="empty">No scholarships posted yet.</td>
           </tr>
         </tbody>
       </table>
     </div>
-
   </div>
 </template>
 
