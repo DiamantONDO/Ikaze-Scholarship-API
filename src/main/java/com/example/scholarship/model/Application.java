@@ -14,13 +14,16 @@ public class Application {
     @Id
     private String id;
     private String studentId;
+    private String scholarshipId;
     private String status;
+    private boolean processed;
+    private String date;
 
     private String fullName;
     private String age;
-    private String se;
+    private String sex;
     private String idCardName;
-    private String idCardDate;
+    private String idCardData;
     private String equivalenceName;
     private String equivalenceData;
     private String transcriptName;
