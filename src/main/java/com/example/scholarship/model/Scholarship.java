@@ -9,8 +9,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 
+@Builder
 public class Scholarship {
     @Id
     private String id;
