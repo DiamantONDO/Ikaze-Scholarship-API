@@ -9,8 +9,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 
+@Builder
 public class Users {
     @Id
     private String id;
