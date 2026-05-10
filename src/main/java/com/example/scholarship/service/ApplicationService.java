@@ -7,7 +7,6 @@ import com.example.scholarship.exception.ResourceNotFoundException;
 import com.example.scholarship.model.Application;
 import com.example.scholarship.repository.ApplicationRepository;
 import com.example.scholarship.repository.ScholarshipRepository;
-import com.example.scholarship.utils.SanitizationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +20,6 @@ public class ApplicationService {
 
     private final ApplicationRepository applicationRepository;
     private final ScholarshipRepository scholarshipRepository;
-    private final SanitizationUtils sanitizer;
 
     public List<Application> getAll() {
         return applicationRepository.findAll();
@@ -41,13 +39,13 @@ public class ApplicationService {
     }
 
     public Application apply(String studentId, ApplicationRequest request) {
+        // Check scholarship exists
         scholarshipRepository.findById(request.getScholarshipId())
                 .orElseThrow(() -> new ResourceNotFoundException("Scholarship not found"));
 
+        // Check already applied
         applicationRepository.findByStudentIdAndScholarshipId(studentId, request.getScholarshipId())
-                .ifPresent(a -> {
-                    throw new BadRequestException("You have already applied for this scholarship");
-                });
+                .ifPresent(a -> { throw new BadRequestException("You have already applied for this scholarship"); });
 
         Application application = Application.builder()
                 .studentId(studentId)
@@ -55,14 +53,14 @@ public class ApplicationService {
                 .status("Pending")
                 .processed(false)
                 .date(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
-                .fullName(sanitizer.sanitize(request.getFullName()))
-                .age(sanitizer.sanitize(request.getAge()))
-                .sex(sanitizer.sanitize(request.getSex()))
-                .idCardName(sanitizer.sanitize(request.getIdCardName()))
+                .fullName(request.getFullName())
+                .age(request.getAge())
+                .sex(request.getSex())
+                .idCardName(request.getIdCardName())
                 .idCardData(request.getIdCardData())
-                .equivalenceName(sanitizer.sanitize(request.getEquivalenceName()))
+                .equivalenceName(request.getEquivalenceName())
                 .equivalenceData(request.getEquivalenceData())
-                .transcriptName(sanitizer.sanitize(request.getTranscriptName()))
+                .transcriptName(request.getTranscriptName())
                 .transcriptData(request.getTranscriptData())
                 .build();
 
@@ -73,7 +71,7 @@ public class ApplicationService {
         Application application = applicationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found with id: " + id));
 
-        String status = sanitizer.sanitize(request.getStatus());
+        String status = request.getStatus();
         if (!status.equals("Approved") && !status.equals("Rejected")) {
             throw new BadRequestException("Status must be Approved or Rejected");
         }
