@@ -40,3 +40,14 @@ __screenshots__/
 ".env.local" 
 target/ 
 *.iml 
+package.json
+src/views/
+src/stores/
+src/router/
+src/layouts/
+src/types/
+src/utils/
+src/data/
+src/App.vue
+src/env.d.ts
+src/.idea/
