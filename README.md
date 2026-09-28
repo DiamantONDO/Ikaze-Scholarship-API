@@ -6,7 +6,7 @@
 
 # 
 
-# \*\*Live API:\*\* https://ikaze-scholarship-api.onrender.com/api/scholarships
+# \*\*Live API:\*\* https://ikaze-scholarship-api.onrender.com/swagger-ui/index.html
 
 # \*\*Live frontend:\*\* https://ikaze-scholarship-web.vercel.app
 
