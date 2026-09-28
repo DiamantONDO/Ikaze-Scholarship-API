@@ -35,15 +35,12 @@ public class PaymentService {
     }
 
     public Payment process(String sponsorId, PaymentRequest request) {
-        // Check student exists
         userRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
-        // Check scholarship exists
         scholarshipRepository.findById(request.getScholarshipId())
                 .orElseThrow(() -> new ResourceNotFoundException("Scholarship not found"));
 
-        // Check already paid
         paymentRepository.findByStudentIdAndSponsorIdAndMonth(
                 request.getStudentId(),
                 request.getScholarshipId(),
